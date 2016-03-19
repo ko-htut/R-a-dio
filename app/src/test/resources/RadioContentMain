@@ -1,0 +1,87 @@
+{
+  "id": 0,
+  "np": "Excel Girls - Ai Sincere Heart",
+  "listeners": 283,
+  "bitrate": 0,
+  "isafkstream": 1,
+  "isstreamdesk": 0,
+  "start_time": 1458341320,
+  "end_time": 1458341547,
+  "lastset": "2016-03-18 22:51:24",
+  "trackid": 822,
+  "thread": "http://discussionthread.com",
+  "requesting": 1,
+  "djname": "Hanyuu",
+  "dj": {
+    "id": 18,
+    "djname": "Hanyuu-sama",
+    "djtext": "",
+    "djimage": "18",
+    "visible": 1,
+    "priority": 8,
+    "css": "hanyuu.css",
+    "djcolor": "51 155 185",
+    "role": "dj",
+    "theme_id": 2
+  },
+  "current": 1458341487,
+  "queue": [
+    {
+      "meta": "Yoshida Hitomi - Kono Sora no Mukou",
+      "time": "<time class=\"timeago\" datetime=\"2016-03-18T22:52:27+0000\">22:52:27</time>",
+      "type": 1,
+      "timestamp": 1458341547
+    },
+    {
+      "meta": "NANA - Explorer World",
+      "time": "<time class=\"timeago\" datetime=\"2016-03-18T22:56:34+0000\">22:56:34</time>",
+      "type": 0,
+      "timestamp": 1458341794
+    },
+    {
+      "meta": "Ayumi Hamasaki - Dearest",
+      "time": "<time class=\"timeago\" datetime=\"2016-03-18T23:02:02+0000\">23:02:02</time>",
+      "type": 1,
+      "timestamp": 1458342122
+    },
+    {
+      "meta": "AKINO with bless4 - Extra Magic Hour",
+      "time": "<time class=\"timeago\" datetime=\"2016-03-18T23:06:17+0000\">23:06:17</time>",
+      "type": 1,
+      "timestamp": 1458342377
+    },
+    {
+      "meta": "osamuraisan - world end dance hall",
+      "time": "<time class=\"timeago\" datetime=\"2016-03-18T23:10:12+0000\">23:10:12</time>",
+      "type": 0,
+      "timestamp": 1458342612
+    }
+  ],
+  "lp": [
+    {
+      "time": "<time class=\"timeago\" datetime=\"2016-03-18T22:48:40+0000\">22:48:40</time>",
+      "meta": "The Seatbelts - Pushing the Sky",
+      "timestamp": 1458341320
+    },
+    {
+      "time": "<time class=\"timeago\" datetime=\"2016-03-18T22:44:31+0000\">22:44:31</time>",
+      "meta": "Naomi Amagata - Suddenly",
+      "timestamp": 1458341071
+    },
+    {
+      "time": "<time class=\"timeago\" datetime=\"2016-03-18T22:40:45+0000\">22:40:45</time>",
+      "meta": "Kanon Wakeshima - Still Doll",
+      "timestamp": 1458340845
+    },
+    {
+      "time": "<time class=\"timeago\" datetime=\"2016-03-18T22:37:25+0000\">22:37:25</time>",
+      "meta": "Ken Ashcorp - Touch Fluffy Tail",
+      "timestamp": 1458340645
+    },
+    {
+      "time": "<time class=\"timeago\" datetime=\"2016-03-18T22:33:06+0000\">22:33:06</time>",
+      "meta": "Touyama Nao - Blue Schedule",
+      "timestamp": 1458340386
+    }
+  ]
+}

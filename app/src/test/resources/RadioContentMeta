@@ -1,0 +1,16 @@
+{
+  "length": 17,
+  "offset": 0,
+  "limit": 25,
+  "routes": [
+    "tracks",
+    "djs",
+    "faves",
+    "can-request",
+    "request",
+    "metadata",
+    "dj-image",
+    "song"
+  ],
+  "stream": "https://stream.r-a-d.io/main.mp3"
+}

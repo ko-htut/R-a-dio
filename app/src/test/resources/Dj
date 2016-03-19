@@ -1,0 +1,12 @@
+{
+  "id": 18,
+  "djname": "Hanyuu-sama",
+  "djtext": "",
+  "djimage": "18",
+  "visible": 1,
+  "priority": 8,
+  "css": "hanyuu.css",
+  "djcolor": "51 155 185",
+  "role": "dj",
+  "theme_id": 2
+}
