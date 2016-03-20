@@ -1,7 +1,9 @@
-package com.jcanseco.radio;
+package com.jcanseco.radio.radioplayer;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import com.jcanseco.radio.R;
 
 public class RadioPlayerActivity extends AppCompatActivity {
 
