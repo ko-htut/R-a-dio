@@ -18,10 +18,8 @@ public class RadioContentLoader {
     private RadioContentListener radioContentListener;
     private RadioRestService radioRestService;
 
-    protected Timer timer = new Timer();
-    private TimerTask timerTask = new RadioContentLoaderTimerTask(this);
-
     private boolean isSetupForActiveLoading = false;
+    private Timer timer;
 
     public RadioContentLoader(RadioRestService radioRestService) {
         this.radioRestService = radioRestService;
@@ -33,12 +31,13 @@ public class RadioContentLoader {
 
     public void beginActiveLoadingOfContent() {
         isSetupForActiveLoading = true;
+        timer = initNewTimer();
         loadContent();
     }
 
     public void stopActiveLoadingOfContent() {
         isSetupForActiveLoading = false;
-        timer.cancel();
+        getTimer().cancel();
     }
 
     public void loadContent() {
@@ -85,7 +84,16 @@ public class RadioContentLoader {
     }
 
     private void scheduleNextLoadTask(long delayInMillis) {
-        timer.schedule(timerTask, delayInMillis);
+        TimerTask timerTask = new RadioContentLoaderTimerTask(this);
+        getTimer().schedule(timerTask, delayInMillis);
+    }
+
+    protected Timer initNewTimer() {
+        return new Timer();
+    }
+
+    protected Timer getTimer() {
+        return timer;
     }
 
 

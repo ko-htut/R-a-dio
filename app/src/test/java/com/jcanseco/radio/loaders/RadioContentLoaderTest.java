@@ -58,7 +58,8 @@ public class RadioContentLoaderTest {
         radioContentLoader = spy(new RadioContentLoader(radioRestService));
         radioContentLoader.setRadioContentListener(radioContentListener);
 
-        radioContentLoader.timer = timer;
+        when(radioContentLoader.initNewTimer()).thenReturn(timer);
+        when(radioContentLoader.getTimer()).thenReturn(timer);
         doNothing().when(timer).schedule(any(TimerTask.class), anyLong());
 
         when(radioRestService.getRadioContent()).thenReturn(radioContentCall);
@@ -69,6 +70,13 @@ public class RadioContentLoaderTest {
         radioContentLoader.beginActiveLoadingOfContent();
 
         assertThat(radioContentLoader.isSetupForActiveLoading()).isTrue();
+    }
+
+    @Test
+    public void whenBeginActiveLoadingOfContentInvoked_shouldInitNewTimer() {
+        radioContentLoader.beginActiveLoadingOfContent();
+
+        verify(radioContentLoader).initNewTimer();
     }
 
     @Test
