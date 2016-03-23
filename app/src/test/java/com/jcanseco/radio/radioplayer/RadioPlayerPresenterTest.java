@@ -34,10 +34,17 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void onResume_shouldLoadRadioContent() {
+    public void onResume_shouldBeginActiveLoadingOfRadioContent() {
         radioPlayerPresenter.onResume();
 
-        verify(radioContentLoader).loadContent();
+        verify(radioContentLoader).beginActiveLoadingOfContent();
+    }
+
+    @Test
+    public void onPause_shouldStopActiveLoadingOfRadioContent() {
+        radioPlayerPresenter.onPause();
+
+        verify(radioContentLoader).stopActiveLoadingOfContent();
     }
 
     @Test

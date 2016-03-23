@@ -23,7 +23,11 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
     }
 
     public void onResume() {
-        radioContentLoader.loadContent();
+        radioContentLoader.beginActiveLoadingOfContent();
+    }
+
+    public void onPause() {
+        radioContentLoader.stopActiveLoadingOfContent();
     }
 
     public void onActionButtonClicked() {

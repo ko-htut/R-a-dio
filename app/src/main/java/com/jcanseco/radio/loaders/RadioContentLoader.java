@@ -1,7 +1,11 @@
 package com.jcanseco.radio.loaders;
 
 import com.jcanseco.radio.api.RadioRestService;
+import com.jcanseco.radio.models.NowPlayingTrack;
 import com.jcanseco.radio.models.RadioContent;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -9,8 +13,15 @@ import retrofit2.Response;
 
 public class RadioContentLoader {
 
+    private static final int DEFAULT_SCHEDULED_LOAD_TASK_DELAY_IN_MILLIS = 5000;
+
     private RadioContentListener radioContentListener;
     private RadioRestService radioRestService;
+
+    protected Timer timer = new Timer();
+    private TimerTask timerTask = new RadioContentLoaderTimerTask(this);
+
+    private boolean isSetupForActiveLoading = false;
 
     public RadioContentLoader(RadioRestService radioRestService) {
         this.radioRestService = radioRestService;
@@ -18,6 +29,16 @@ public class RadioContentLoader {
 
     public void setRadioContentListener(RadioContentListener radioContentListener) {
         this.radioContentListener = radioContentListener;
+    }
+
+    public void beginActiveLoadingOfContent() {
+        isSetupForActiveLoading = true;
+        loadContent();
+    }
+
+    public void stopActiveLoadingOfContent() {
+        isSetupForActiveLoading = false;
+        timer.cancel();
     }
 
     public void loadContent() {
@@ -32,6 +53,11 @@ public class RadioContentLoader {
                 if (response.isSuccess()) {
                     RadioContent radioContent = response.body();
                     radioContentListener.onRadioContentLoadSuccess(radioContent);
+
+                    if(isSetupForActiveLoading()) {
+                        long delayInMillis = determineDelayForNextLoadTaskInMillis(radioContent.getCurrentTrack());
+                        scheduleNextLoadTask(delayInMillis);
+                    }
                 } else {
                     radioContentListener.onRadioContentLoadFailed();
                 }
@@ -42,6 +68,24 @@ public class RadioContentLoader {
                 radioContentListener.onRadioContentLoadFailed();
             }
         };
+    }
+
+    protected boolean isSetupForActiveLoading() {
+        return isSetupForActiveLoading;
+    }
+
+    private int determineDelayForNextLoadTaskInMillis(NowPlayingTrack currentTrack) {
+        int remainingTimeForCurrentTrackInSecs = currentTrack.getRemainingTimeInSeconds();
+
+        if(remainingTimeForCurrentTrackInSecs != NowPlayingTrack.INVALID_TIME_VALUE) {
+            return (remainingTimeForCurrentTrackInSecs + 1) * 1000;
+        } else {
+            return DEFAULT_SCHEDULED_LOAD_TASK_DELAY_IN_MILLIS;
+        }
+    }
+
+    private void scheduleNextLoadTask(long delayInMillis) {
+        timer.schedule(timerTask, delayInMillis);
     }
 
 
