@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="radio_red">#DF4C3A</color>
+    <color name="radio_blue">#49667F</color>
+    <color name="radio_white">#F5F5F5</color>
+    <color name="radio_light_gray">#787878</color>
+    <color name="radio_gray">#3D3D3D</color>
+    <color name="radio_dark_gray">#2A2A2A</color>
+    <color name="radio_charcoal">#222222</color>
+    <color name="radio_black">#1B1B1B</color>
+</resources>
