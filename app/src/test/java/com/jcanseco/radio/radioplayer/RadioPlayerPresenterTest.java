@@ -78,10 +78,26 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
+    public void whenPlayerPaused_thenStopPlayingRadioStream() {
+        radioPlayerPresenter.pausePlayer();
+
+        verify(radioPlayerView).stopPlayingRadioStream();
+    }
+
+    @Test
     public void whenPlayerPaused_thenChangePlayerStateToPaused() {
         radioPlayerPresenter.pausePlayer();
 
         assertThat(radioPlayerPresenter.isPlayerPlaying()).isFalse();
+    }
+
+    @Test
+    public void whenPlayerPlayed_andRadioStreamUrlNotNull_thenShowPauseButton() {
+        when(radioPlayerPresenter.getStreamUrl()).thenReturn("https://streamurl.com");
+
+        radioPlayerPresenter.playPlayer();
+
+        verify(radioPlayerView).showPauseButton();
     }
 
     @Test
@@ -103,15 +119,6 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void whenPlayerPlayed_andRadioStreamUrlNotNull_thenShowPauseButton() {
-        when(radioPlayerPresenter.getStreamUrl()).thenReturn("https://streamurl.com");
-
-        radioPlayerPresenter.playPlayer();
-
-        verify(radioPlayerView).showPauseButton();
-    }
-
-    @Test
     public void whenPlayerPlayed_andRadioStreamUrlIsNull_thenDontShowPauseButton() {
         when(radioPlayerPresenter.getStreamUrl()).thenReturn(null);
 
@@ -121,30 +128,30 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void whenPlayerPlayed_andRadioStreamUrlNotNull_thenLoadRadioStreamOntoView() {
+    public void whenPlayerPlayed_andRadioStreamUrlNotNull_thenStartPlayingRadioStream() {
         when(radioPlayerPresenter.getStreamUrl()).thenReturn("https://streamurl.com");
 
         radioPlayerPresenter.playPlayer();
 
-        verify(radioPlayerView).loadRadioStream("https://streamurl.com");
+        verify(radioPlayerView).startPlayingRadioStream("https://streamurl.com");
     }
 
     @Test
-    public void whenPlayerPlayed_andRadioStreamUrlIsNull_thenDontLoadRadioStreamOntoView() {
+    public void whenPlayerPlayed_andRadioStreamUrlIsNull_thenDontStartPlayingRadioStream() {
         when(radioPlayerPresenter.getStreamUrl()).thenReturn(null);
 
         radioPlayerPresenter.playPlayer();
 
-        verify(radioPlayerView, never()).loadRadioStream(anyString());
+        verify(radioPlayerView, never()).startPlayingRadioStream(anyString());
     }
 
     @Test
-    public void whenPlayerPlayed_andRadioStreamUrlIsNull_thenShowCouldNotLoadRadioStreamErrorMessage() {
+    public void whenPlayerPlayed_andRadioStreamUrlIsNull_thenShowCouldNotPlayRadioStreamErrorMessage() {
         when(radioPlayerPresenter.getStreamUrl()).thenReturn(null);
 
         radioPlayerPresenter.playPlayer();
 
-        verify(radioPlayerView).showCouldNotLoadRadioStreamErrorMessage();
+        verify(radioPlayerView).showCouldNotPlayRadioStreamErrorMessage();
     }
 
     @Test
@@ -163,15 +170,6 @@ public class RadioPlayerPresenterTest {
         radioPlayerPresenter.onRadioContentLoadSuccess(radioContent);
 
         verify(radioPlayerView).showCurrentDjName("current dj name");
-    }
-
-    @Test
-    public void onRadioContentLoadSuccess_shouldShowCurrentDjAvatar() {
-        FakeRadioContent radioContent = new FakeRadioContent();
-
-        radioPlayerPresenter.onRadioContentLoadSuccess(radioContent);
-
-        verify(radioPlayerView).showCurrentDjAvatar("http://r-a-d.io/api/dj-image/20");
     }
 
     @Test

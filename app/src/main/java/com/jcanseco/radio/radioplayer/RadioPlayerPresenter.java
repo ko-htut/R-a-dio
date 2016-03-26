@@ -44,6 +44,7 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
     protected void pausePlayer() {
         radioPlayerView.showPlayButton();
+        radioPlayerView.stopPlayingRadioStream();
         isPlayerPlaying = false;
     }
 
@@ -51,10 +52,10 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
         String streamUrl = getStreamUrl();
         if (streamUrl != null) {
             radioPlayerView.showPauseButton();
-            radioPlayerView.loadRadioStream(streamUrl);
+            radioPlayerView.startPlayingRadioStream(streamUrl);
             isPlayerPlaying = true;
         } else {
-            radioPlayerView.showCouldNotLoadRadioStreamErrorMessage();
+            radioPlayerView.showCouldNotPlayRadioStreamErrorMessage();
         }
     }
 
@@ -65,7 +66,6 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
         radioPlayerView.showCurrentTrackTitle(currentTrack.getTitle());
         radioPlayerView.showCurrentDjName(currentDj.getName());
-        radioPlayerView.showCurrentDjAvatar(currentDj.getAvatarUrl());
         radioPlayerView.showNumOfListeners(radioContent.getNumOfListeners());
 
         setRadioStreamUrl(radioContent.getStreamUrl());
@@ -96,14 +96,14 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
         void showCurrentDjName(String name);
 
-        void showCurrentDjAvatar(String avatarUrl);
-
         void showNumOfListeners(int numOfListeners);
 
-        void loadRadioStream(String streamUrl);
+        void startPlayingRadioStream(String streamUrl);
+
+        void stopPlayingRadioStream();
 
         void showCouldNotLoadRadioContentErrorMessage();
 
-        void showCouldNotLoadRadioStreamErrorMessage();
+        void showCouldNotPlayRadioStreamErrorMessage();
     }
 }
