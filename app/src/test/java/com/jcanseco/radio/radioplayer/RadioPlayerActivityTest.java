@@ -255,7 +255,7 @@ public class RadioPlayerActivityTest {
 
         radioPlayerActivity.showCouldNotPlayRadioStreamErrorMessage();
 
-        assertToastDisplayed("Stream unavailable. Try again later.");
+        assertToastDisplayed("Error playing stream. Try again later.");
     }
 
     private ServiceConnection buildMockServiceConnection() {
