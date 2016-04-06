@@ -66,6 +66,11 @@ public class RadioContentLoaderTest {
     }
 
     @Test
+    public void shouldNotBeSetUpForActiveLoadingbyDefault() {
+        assertThat(radioContentLoader.isSetupForActiveLoading()).isFalse();
+    }
+
+    @Test
     public void whenBeginActiveLoadingOfContentInvoked_loaderShouldBeSetupForActiveLoading() {
         radioContentLoader.beginActiveLoadingOfContent();
 

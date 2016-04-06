@@ -1,9 +1,14 @@
 package com.jcanseco.radio.radioplayer;
 
-import android.media.AudioManager;
-import android.media.MediaPlayer;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -12,8 +17,7 @@ import android.widget.Toast;
 
 import com.jcanseco.radio.R;
 import com.jcanseco.radio.injectors.Injector;
-
-import java.io.IOException;
+import com.jcanseco.radio.services.RadioPlayerService;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -23,7 +27,11 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
 
     protected RadioPlayerPresenter radioPlayerPresenter;
 
-    protected MediaPlayer mediaPlayer;
+    protected RadioPlayerService radioPlayerService;
+
+    protected ServiceConnection serviceConnection;
+
+    protected BroadcastReceiver receiver;
 
     @Bind(R.id.track_title)
     TextView trackTitleView;
@@ -55,7 +63,16 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         radioPlayerPresenter = Injector.provideRadioPlayerPresenter();
         radioPlayerPresenter.attachView(this);
 
-        mediaPlayer = new MediaPlayer();
+        serviceConnection = initServiceConnection();
+
+        receiver = initBroadcastReceiver();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        radioPlayerPresenter.onStart();
     }
 
     @Override
@@ -70,6 +87,58 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         super.onPause();
 
         radioPlayerPresenter.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        radioPlayerPresenter.onStop();
+    }
+
+    public void startRadioPlayerService() {
+        startService(getServiceIntent());
+    }
+
+    public void bindToRadioPlayerService() {
+        bindService(getServiceIntent(), serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    public void unbindFromRadioPlayerService() {
+        unbindService(serviceConnection);
+    }
+
+    private ServiceConnection initServiceConnection() {
+        return new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder binder) {
+                RadioPlayerService.RadioPlayerBinder radioPlayerBinder = (RadioPlayerService.RadioPlayerBinder) binder;
+                radioPlayerService = radioPlayerBinder.getService();
+                radioPlayerPresenter.onRadioPlayerServiceConnected();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                radioPlayerPresenter.onRadioPlayerServiceDisconnected();
+            }
+        };
+    }
+
+    public void registerBroadcastReceiverToListenLocallyFor(String broadcastIntentAction) {
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, new IntentFilter(broadcastIntentAction));
+    }
+
+    public void unregisterBroadcastReceiver() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+    }
+
+    private BroadcastReceiver initBroadcastReceiver() {
+        return new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                radioPlayerPresenter.onFailedToPlayStreamBroadcastReceived();
+            }
+        };
     }
 
     @OnClick(R.id.action_button)
@@ -105,43 +174,12 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
 
     @Override
     public void startPlayingRadioStream(String streamUrl) {
-        try {
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setOnPreparedListener(buildOnPreparedListener());
-            mediaPlayer.setOnErrorListener(buildOnErrorListener());
-            mediaPlayer.setDataSource(streamUrl);
-            mediaPlayer.prepareAsync();
-        } catch (IOException|IllegalStateException e) {
-            showCouldNotPlayRadioStreamErrorMessage();
-        }
+        radioPlayerService.startPlayingRadioStream(streamUrl);
     }
 
     @Override
     public void stopPlayingRadioStream() {
-        mediaPlayer.stop();
-        mediaPlayer.reset();
-    }
-
-    @NonNull
-    private MediaPlayer.OnPreparedListener buildOnPreparedListener() {
-        return new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                mediaPlayer.start();
-            }
-        };
-    }
-
-    @NonNull
-    private MediaPlayer.OnErrorListener buildOnErrorListener() {
-        return new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                showCouldNotPlayRadioStreamErrorMessage();
-                mediaPlayer.reset();
-                return false;
-            }
-        };
+        radioPlayerService.stopPlayingRadioStream();
     }
 
     @Override
@@ -152,5 +190,9 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
     @Override
     public void showCouldNotPlayRadioStreamErrorMessage() {
         Toast.makeText(this, R.string.failed_to_load_stream, Toast.LENGTH_SHORT).show();
+    }
+
+    private Intent getServiceIntent() {
+        return new Intent(this, RadioPlayerService.class);
     }
 }

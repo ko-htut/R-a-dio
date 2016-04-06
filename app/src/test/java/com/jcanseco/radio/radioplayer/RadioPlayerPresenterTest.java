@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static junit.framework.Assert.assertEquals;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
@@ -34,6 +35,28 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
+    public void onStart_shouldStartRadioPlayerService() {
+        radioPlayerPresenter.onStart();
+
+        verify(radioPlayerView).startRadioPlayerService();
+    }
+
+    @Test
+    public void onStart_shouldBindToRadioPlayerService() {
+        radioPlayerPresenter.onStart();
+
+        verify(radioPlayerView).bindToRadioPlayerService();
+    }
+
+    @Test
+    public void onStart_shouldRegisterBroadcastReceiverToListenForBroadcastIndicatingFailureToPlayStream() {
+        radioPlayerPresenter.onStart();
+
+        String expectedBroadcastIntentAction = "com.jcanseco.radio.constants.Constants.Actions.NOTIFY_USER_OF_FAILURE_TO_PLAY_RADIO_STREAM";
+        verify(radioPlayerView).registerBroadcastReceiverToListenLocallyFor(expectedBroadcastIntentAction);
+    }
+
+    @Test
     public void onResume_shouldBeginActiveLoadingOfRadioContent() {
         radioPlayerPresenter.onResume();
 
@@ -45,6 +68,39 @@ public class RadioPlayerPresenterTest {
         radioPlayerPresenter.onPause();
 
         verify(radioContentLoader).stopActiveLoadingOfContent();
+    }
+
+    @Test
+    public void onStop_shouldUnbindFromRadioPlayerService() {
+        radioPlayerPresenter.onStop();
+
+        radioPlayerView.unbindFromRadioPlayerService();
+    }
+
+    @Test
+    public void onStop_shouldUnregisterReceiver() {
+        radioPlayerPresenter.onStop();
+
+        radioPlayerView.unregisterBroadcastReceiver();
+    }
+
+    @Test
+    public void radioPlayerServiceShouldNotBeConnectedByDefault() {
+        assertThat(radioPlayerPresenter.isRadioPlayerServiceConnected()).isFalse();
+    }
+
+    @Test
+    public void onRadioPlayerServiceConnected_shouldIndicateThatServiceIsConnected() {
+        radioPlayerPresenter.onRadioPlayerServiceConnected();
+
+        assertThat(radioPlayerPresenter.isRadioPlayerServiceConnected()).isTrue();
+    }
+
+    @Test
+    public void onRadioPlayerServiceDisconnected_shouldIndicateThatServiceIsNotConnected() {
+        radioPlayerPresenter.onRadioPlayerServiceDisconnected();
+
+        assertThat(radioPlayerPresenter.isRadioPlayerServiceConnected()).isFalse();
     }
 
     @Test
@@ -71,28 +127,56 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void whenPlayerPaused_thenShowPlayButton() {
+    public void whenPlayerPaused_ifRadioPlayerServiceConnected_thenShowPlayButton() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(true);
+
         radioPlayerPresenter.pausePlayer();
 
         verify(radioPlayerView).showPlayButton();
     }
 
     @Test
-    public void whenPlayerPaused_thenStopPlayingRadioStream() {
+    public void whenPlayerPaused_ifRadioPlayerServiceConnected_thenStopPlayingRadioStream() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(true);
+
         radioPlayerPresenter.pausePlayer();
 
         verify(radioPlayerView).stopPlayingRadioStream();
     }
 
     @Test
-    public void whenPlayerPaused_thenChangePlayerStateToPaused() {
+    public void whenPlayerPaused_ifRadioPlayerServiceConnected_thenChangePlayerStateToPaused() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(true);
+
         radioPlayerPresenter.pausePlayer();
 
         assertThat(radioPlayerPresenter.isPlayerPlaying()).isFalse();
     }
 
     @Test
-    public void whenPlayerPlayed_andRadioStreamUrlNotNull_thenShowPauseButton() {
+    public void whenPlayerPaused_ifRadioPlayerServiceNotConnected_thenDontManipulateTheView() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(false);
+
+        radioPlayerPresenter.pausePlayer();
+
+        verify(radioPlayerView, never()).showPlayButton();
+        verify(radioPlayerView, never()).stopPlayingRadioStream();
+    }
+
+    @Test
+    public void whenPlayerPaused_ifRadioPlayerServiceNotConnected_thenDontChangePlayerState() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(false);
+        boolean oldValue = radioPlayerPresenter.isPlayerPlaying();
+
+        radioPlayerPresenter.pausePlayer();
+
+        boolean newValue = radioPlayerPresenter.isPlayerPlaying();
+        assertEquals(oldValue, newValue);
+    }
+
+    @Test
+    public void whenPlayerPlayed_ifServiceConnected_andRadioStreamUrlNotNull_thenShowPauseButton() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(true);
         when(radioPlayerPresenter.getStreamUrl()).thenReturn("https://streamurl.com");
 
         radioPlayerPresenter.playPlayer();
@@ -101,34 +185,8 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void whenPlayerPlayed_andStreamUrlNotNull_thenChangePlayerStateToPlaying() {
-        when(radioPlayerPresenter.getStreamUrl()).thenReturn("https://streamurl.com");
-
-        radioPlayerPresenter.playPlayer();
-
-        assertThat(radioPlayerPresenter.isPlayerPlaying()).isTrue();
-    }
-
-    @Test
-    public void whenPlayerPlayed_andRadioStreamUrlNotNull_thenDontChangePlayerStateToPlaying() {
-        when(radioPlayerPresenter.getStreamUrl()).thenReturn(null);
-
-        radioPlayerPresenter.playPlayer();
-
-        assertThat(radioPlayerPresenter.isPlayerPlaying()).isFalse();
-    }
-
-    @Test
-    public void whenPlayerPlayed_andRadioStreamUrlIsNull_thenDontShowPauseButton() {
-        when(radioPlayerPresenter.getStreamUrl()).thenReturn(null);
-
-        radioPlayerPresenter.playPlayer();
-
-        verify(radioPlayerView, never()).showPauseButton();
-    }
-
-    @Test
-    public void whenPlayerPlayed_andRadioStreamUrlNotNull_thenStartPlayingRadioStream() {
+    public void whenPlayerPlayed_ifServiceConnected_andRadioStreamUrlNotNull_thenStartPlayingRadioStream() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(true);
         when(radioPlayerPresenter.getStreamUrl()).thenReturn("https://streamurl.com");
 
         radioPlayerPresenter.playPlayer();
@@ -137,7 +195,28 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void whenPlayerPlayed_andRadioStreamUrlIsNull_thenDontStartPlayingRadioStream() {
+    public void whenPlayerPlayed_ifServiceConnected_andRadioStreamUrlNotNull_thenChangePlayerStateToPlaying() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(true);
+        when(radioPlayerPresenter.getStreamUrl()).thenReturn("https://streamurl.com");
+
+        radioPlayerPresenter.playPlayer();
+
+        assertThat(radioPlayerPresenter.isPlayerPlaying()).isTrue();
+    }
+
+    @Test
+    public void whenPlayerPlayed_ifServiceConnected_andRadioStreamUrlIsNull_thenDontShowPauseButton() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(true);
+        when(radioPlayerPresenter.getStreamUrl()).thenReturn(null);
+
+        radioPlayerPresenter.playPlayer();
+
+        verify(radioPlayerView, never()).showPauseButton();
+    }
+
+    @Test
+    public void whenPlayerPlayed_ifServiceConnected_andRadioStreamUrlIsNull_thenDontStartPlayingRadioStream() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(true);
         when(radioPlayerPresenter.getStreamUrl()).thenReturn(null);
 
         radioPlayerPresenter.playPlayer();
@@ -146,12 +225,47 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void whenPlayerPlayed_andRadioStreamUrlIsNull_thenShowCouldNotPlayRadioStreamErrorMessage() {
+    public void whenPlayerPlayed_ifServiceConnected_andRadioStreamUrlIsNull_thenDontChangePlayerState() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(true);
+        when(radioPlayerPresenter.getStreamUrl()).thenReturn(null);
+        boolean oldValue = radioPlayerPresenter.isPlayerPlaying();
+
+        radioPlayerPresenter.playPlayer();
+
+        boolean newValue = radioPlayerPresenter.isPlayerPlaying();
+        assertEquals(oldValue, newValue);
+    }
+
+    @Test
+    public void whenPlayerPlayed_ifServiceConnected_andRadioStreamUrlIsNull_thenShowCouldNotPlayRadioStreamErrorMessage() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(true);
         when(radioPlayerPresenter.getStreamUrl()).thenReturn(null);
 
         radioPlayerPresenter.playPlayer();
 
         verify(radioPlayerView).showCouldNotPlayRadioStreamErrorMessage();
+    }
+
+    @Test
+    public void whenPlayerPlayed_ifServiceNotConnected_thenDontManipulateTheView() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(false);
+
+        radioPlayerPresenter.playPlayer();
+
+        verify(radioPlayerView, never()).showPauseButton();
+        verify(radioPlayerView, never()).startPlayingRadioStream("http://streamurl.com");
+        verify(radioPlayerView, never()).showCouldNotPlayRadioStreamErrorMessage();
+    }
+
+    @Test
+    public void whenPlayerPlayed_ifServiceNotConnected_thenDontChangePlayerState() {
+        when(radioPlayerPresenter.isRadioPlayerServiceConnected()).thenReturn(false);
+        boolean oldValue = radioPlayerPresenter.isPlayerPlaying();
+
+        radioPlayerPresenter.playPlayer();
+
+        boolean newValue = radioPlayerPresenter.isPlayerPlaying();
+        assertEquals(oldValue, newValue);
     }
 
     @Test
@@ -201,6 +315,20 @@ public class RadioPlayerPresenterTest {
     @Test
     public void onRadioContentLoadFailed_shouldPausePlayer() {
         radioPlayerPresenter.onRadioContentLoadFailed();
+
+        verify(radioPlayerPresenter).pausePlayer();
+    }
+
+    @Test
+    public void onFailedToPlayStreamBroadcastReceived_shouldShowCouldNotPlayRadioStreamErrorMessage() {
+        radioPlayerPresenter.onFailedToPlayStreamBroadcastReceived();
+
+        verify(radioPlayerView).showCouldNotPlayRadioStreamErrorMessage();
+    }
+
+    @Test
+    public void onFailedToPlayStreamBroadcastReceived_shouldPausePlayer() {
+        radioPlayerPresenter.onFailedToPlayStreamBroadcastReceived();
 
         verify(radioPlayerPresenter).pausePlayer();
     }

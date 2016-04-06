@@ -1,5 +1,6 @@
 package com.jcanseco.radio.radioplayer;
 
+import com.jcanseco.radio.constants.Constants;
 import com.jcanseco.radio.loaders.RadioContentLoader;
 import com.jcanseco.radio.models.Dj;
 import com.jcanseco.radio.models.NowPlayingTrack;
@@ -10,8 +11,10 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
     private RadioPlayerPresenter.View radioPlayerView;
     private RadioContentLoader radioContentLoader;
 
-    private boolean isPlayerPlaying = false;
-    private String radioStreamUrl = null;
+    private boolean isPlayerPlaying;
+    private String radioStreamUrl;
+
+    private boolean isRadioPlayerServiceConnected;
 
     public RadioPlayerPresenter(RadioContentLoader radioContentLoader) {
         this.radioContentLoader = radioContentLoader;
@@ -22,12 +25,31 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
         this.radioPlayerView = radioPlayerView;
     }
 
+    public void onStart() {
+        radioPlayerView.startRadioPlayerService();
+        radioPlayerView.bindToRadioPlayerService();
+        radioPlayerView.registerBroadcastReceiverToListenLocallyFor(Constants.Actions.NOTIFY_USER_OF_FAILURE_TO_PLAY_RADIO_STREAM);
+    }
+
     public void onResume() {
         radioContentLoader.beginActiveLoadingOfContent();
     }
 
     public void onPause() {
         radioContentLoader.stopActiveLoadingOfContent();
+    }
+
+    public void onStop() {
+        radioPlayerView.unbindFromRadioPlayerService();
+        radioPlayerView.unregisterBroadcastReceiver();
+    }
+
+    public void onRadioPlayerServiceConnected() {
+        isRadioPlayerServiceConnected = true;
+    }
+
+    public void onRadioPlayerServiceDisconnected() {
+        isRadioPlayerServiceConnected = false;
     }
 
     public void onActionButtonClicked() {
@@ -43,19 +65,23 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
     }
 
     protected void pausePlayer() {
-        radioPlayerView.showPlayButton();
-        radioPlayerView.stopPlayingRadioStream();
-        isPlayerPlaying = false;
+        if (isRadioPlayerServiceConnected()) {
+            radioPlayerView.showPlayButton();
+            radioPlayerView.stopPlayingRadioStream();
+            isPlayerPlaying = false;
+        }
     }
 
     protected void playPlayer() {
-        String streamUrl = getStreamUrl();
-        if (streamUrl != null) {
-            radioPlayerView.showPauseButton();
-            radioPlayerView.startPlayingRadioStream(streamUrl);
-            isPlayerPlaying = true;
-        } else {
-            radioPlayerView.showCouldNotPlayRadioStreamErrorMessage();
+        if (isRadioPlayerServiceConnected()) {
+            String streamUrl = getStreamUrl();
+            if (streamUrl != null) {
+                radioPlayerView.showPauseButton();
+                radioPlayerView.startPlayingRadioStream(streamUrl);
+                isPlayerPlaying = true;
+            } else {
+                radioPlayerView.showCouldNotPlayRadioStreamErrorMessage();
+            }
         }
     }
 
@@ -77,6 +103,15 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
         pausePlayer();
     }
 
+    public void onFailedToPlayStreamBroadcastReceived() {
+        radioPlayerView.showCouldNotPlayRadioStreamErrorMessage();
+        pausePlayer();
+    }
+
+    protected boolean isRadioPlayerServiceConnected() {
+        return isRadioPlayerServiceConnected;
+    }
+
     protected String getStreamUrl() {
         return radioStreamUrl;
     }
@@ -87,6 +122,16 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
 
     public interface View {
+
+        void startRadioPlayerService();
+
+        void bindToRadioPlayerService();
+
+        void unbindFromRadioPlayerService();
+
+        void registerBroadcastReceiverToListenLocallyFor(String broadcastIntentAction);
+
+        void unregisterBroadcastReceiver();
 
         void showPlayButton();
 

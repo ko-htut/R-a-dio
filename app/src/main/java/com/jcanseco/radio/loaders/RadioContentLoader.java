@@ -18,7 +18,7 @@ public class RadioContentLoader {
     private RadioContentListener radioContentListener;
     private RadioRestService radioRestService;
 
-    private boolean isSetupForActiveLoading = false;
+    private boolean isSetupForActiveLoading;
     private Timer timer;
 
     public RadioContentLoader(RadioRestService radioRestService) {
