@@ -116,7 +116,7 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
             public void onServiceConnected(ComponentName name, IBinder binder) {
                 RadioPlayerService.RadioPlayerBinder radioPlayerBinder = (RadioPlayerService.RadioPlayerBinder) binder;
                 radioPlayerService = radioPlayerBinder.getService();
-                radioPlayerPresenter.onRadioPlayerServiceConnected();
+                radioPlayerPresenter.onRadioPlayerServiceConnected(radioPlayerService.isPlayingStream());
             }
 
             @Override

@@ -33,6 +33,10 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
         return radioPlayerBinder;
     }
 
+    public boolean isPlayingStream() {
+        return mediaPlayer.isPlaying();
+    }
+
     public void startPlayingRadioStream(String streamUrl) {
         try {
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);

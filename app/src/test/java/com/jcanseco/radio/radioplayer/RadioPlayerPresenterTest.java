@@ -12,6 +12,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static junit.framework.Assert.assertEquals;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -90,10 +91,49 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void onRadioPlayerServiceConnected_shouldIndicateThatServiceIsConnected() {
-        radioPlayerPresenter.onRadioPlayerServiceConnected();
+    public void onRadioPlayerServiceConnected_ifServiceIsCurrentlyPlayingStream_thenShowPauseButton() {
+        boolean isServiceCurrentlyPlayingStream = true;
+        radioPlayerPresenter.onRadioPlayerServiceConnected(isServiceCurrentlyPlayingStream);
 
-        assertThat(radioPlayerPresenter.isRadioPlayerServiceConnected()).isTrue();
+        verify(radioPlayerView).showPauseButton();
+    }
+
+    @Test
+    public void onRadioPlayerServiceConnected_ifServiceIsCurrentlyPlayingStream_thenSetPlayerStateToPlaying() {
+        boolean isServiceCurrentlyPlayingStream = true;
+        radioPlayerPresenter.onRadioPlayerServiceConnected(isServiceCurrentlyPlayingStream);
+
+        assertThat(radioPlayerPresenter.isPlayerPlaying()).isTrue();
+    }
+
+    @Test
+    public void onRadioPlayerServiceConnected_ifServiceIsNotCurrentlyPlayingStream_thenShowPlayButton() {
+        boolean isServiceCurrentlyPlayingStream = false;
+        radioPlayerPresenter.onRadioPlayerServiceConnected(isServiceCurrentlyPlayingStream);
+
+        verify(radioPlayerView).showPlayButton();
+    }
+
+    @Test
+    public void onRadioPlayerServiceConnected_ifServiceIsNotCurrentlyPlayingStream_thenSetPlayerStateToPaused() {
+        boolean isServiceCurrentlyPlayingStream = false;
+        radioPlayerPresenter.onRadioPlayerServiceConnected(isServiceCurrentlyPlayingStream);
+
+        assertThat(radioPlayerPresenter.isPlayerPlaying()).isFalse();
+    }
+
+    @Test
+    public void onRadioPlayerServiceConnected_shouldIndicateThatServiceIsConnected_regardlessOfWhetherServiceIsCurrentlyPlayingStream() {
+        RadioPlayerPresenter radioPlayerPresenter1 = spy(new RadioPlayerPresenter(mock(RadioContentLoader.class)));
+        RadioPlayerPresenter radioPlayerPresenter2 = spy(new RadioPlayerPresenter(mock(RadioContentLoader.class)));
+        radioPlayerPresenter1.attachView(mock(RadioPlayerPresenter.View.class));
+        radioPlayerPresenter2.attachView(mock(RadioPlayerPresenter.View.class));
+
+        radioPlayerPresenter1.onRadioPlayerServiceConnected(true);
+        radioPlayerPresenter2.onRadioPlayerServiceConnected(false);
+
+        assertThat(radioPlayerPresenter1.isRadioPlayerServiceConnected()).isTrue();
+        assertThat(radioPlayerPresenter2.isRadioPlayerServiceConnected()).isTrue();
     }
 
     @Test

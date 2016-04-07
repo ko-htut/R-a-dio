@@ -30,6 +30,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21, manifest = "src/main/AndroidManifest.xml")
@@ -52,6 +53,22 @@ public class RadioPlayerServiceTest {
 
         assertThat(binder).isNotNull();
         assertThat(binder.getService()).isEqualTo(radioPlayerService);
+    }
+
+    @Test
+    public void whenIsPlayingStreamInvoked_ifMediaPlayerIsPlaying_thenReturnTrue() {
+        radioPlayerService.mediaPlayer = mock(MediaPlayer.class);
+        when(radioPlayerService.mediaPlayer.isPlaying()).thenReturn(true);
+
+        assertThat(radioPlayerService.isPlayingStream()).isTrue();
+    }
+
+    @Test
+    public void whenIsPlayingStreamInvoked_ifMediaPlayerIsNotPlaying_thenReturnFalse() {
+        radioPlayerService.mediaPlayer = mock(MediaPlayer.class);
+        when(radioPlayerService.mediaPlayer.isPlaying()).thenReturn(false);
+
+        assertThat(radioPlayerService.isPlayingStream()).isFalse();
     }
 
     @Test

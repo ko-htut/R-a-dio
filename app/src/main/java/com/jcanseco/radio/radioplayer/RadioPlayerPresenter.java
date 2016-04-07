@@ -44,7 +44,12 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
         radioPlayerView.unregisterBroadcastReceiver();
     }
 
-    public void onRadioPlayerServiceConnected() {
+    public void onRadioPlayerServiceConnected(boolean isServiceCurrentlyPlayingStream) {
+        if(isServiceCurrentlyPlayingStream) {
+            setPlayerStateAsPlaying();
+        } else {
+            setPlayerStateAsPaused();
+        }
         isRadioPlayerServiceConnected = true;
     }
 
@@ -66,9 +71,8 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
     protected void pausePlayer() {
         if (isRadioPlayerServiceConnected()) {
-            radioPlayerView.showPlayButton();
             radioPlayerView.stopPlayingRadioStream();
-            isPlayerPlaying = false;
+            setPlayerStateAsPaused();
         }
     }
 
@@ -76,9 +80,8 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
         if (isRadioPlayerServiceConnected()) {
             String streamUrl = getStreamUrl();
             if (streamUrl != null) {
-                radioPlayerView.showPauseButton();
                 radioPlayerView.startPlayingRadioStream(streamUrl);
-                isPlayerPlaying = true;
+                setPlayerStateAsPlaying();
             } else {
                 radioPlayerView.showCouldNotPlayRadioStreamErrorMessage();
             }
@@ -118,6 +121,16 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
     protected void setRadioStreamUrl(String radioStreamUrl) {
         this.radioStreamUrl = radioStreamUrl;
+    }
+
+    private void setPlayerStateAsPaused() {
+        radioPlayerView.showPlayButton();
+        isPlayerPlaying = false;
+    }
+
+    private void setPlayerStateAsPlaying() {
+        radioPlayerView.showPauseButton();
+        isPlayerPlaying = true;
     }
 
 
