@@ -106,6 +106,8 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
 
     public void unbindFromRadioPlayerService() {
         unbindService(serviceConnection);
+        radioPlayerPresenter.onRadioPlayerServiceDisconnected();
+        radioPlayerService = null;
     }
 
     private ServiceConnection initServiceConnection() {
@@ -120,6 +122,7 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
             @Override
             public void onServiceDisconnected(ComponentName name) {
                 radioPlayerPresenter.onRadioPlayerServiceDisconnected();
+                radioPlayerService = null;
             }
         };
     }

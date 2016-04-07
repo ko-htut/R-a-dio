@@ -113,6 +113,24 @@ public class RadioPlayerActivityTest {
     }
 
     @Test
+    public void whenUnbindFromRadioPlayerServiceInvoked_thenNotifyPresenterThatServiceHasBeenDisconnected() {
+        activityController.start();
+
+        radioPlayerActivity.unbindFromRadioPlayerService();
+
+        verify(radioPlayerPresenter).onRadioPlayerServiceDisconnected();
+    }
+
+    @Test
+    public void whenUnbindFromRadioPlayerServiceInvoked_thenDiscardReferenceToService() {
+        activityController.start();
+
+        radioPlayerActivity.unbindFromRadioPlayerService();
+
+        assertThat(radioPlayerActivity.radioPlayerService).isNull();
+    }
+
+    @Test
     public void onRadioPlayerServiceConnected_shouldGetServiceFromIBinder() {
         RadioPlayerActivity radioPlayerActivity = Robolectric.buildActivity(RadioPlayerActivity.class).create().get();
         radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
@@ -135,6 +153,17 @@ public class RadioPlayerActivityTest {
         radioPlayerActivity.serviceConnection.onServiceConnected(mock(ComponentName.class), binder);
 
         verify(radioPlayerPresenter).onRadioPlayerServiceConnected();
+    }
+
+    @Test
+    public void onRadioPlayerServiceDisconnected_shouldDiscardReferenceToService() {
+        RadioPlayerActivity radioPlayerActivity = Robolectric.buildActivity(RadioPlayerActivity.class).create().get();
+        radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
+        radioPlayerActivity.radioPlayerService = radioPlayerService;
+
+        radioPlayerActivity.serviceConnection.onServiceDisconnected(mock(ComponentName.class));
+
+        assertThat(radioPlayerActivity.radioPlayerService).isNull();
     }
 
     @Test
