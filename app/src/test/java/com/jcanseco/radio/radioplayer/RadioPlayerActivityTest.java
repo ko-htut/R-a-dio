@@ -1,5 +1,6 @@
 package com.jcanseco.radio.radioplayer;
 
+import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -311,9 +312,7 @@ public class RadioPlayerActivityTest {
     }
 
     private void assertThatRadioPlayerServiceStartedBy(RadioPlayerActivity activityExpectedToStartService) {
-        ShadowActivity shadowActivity = shadowOf(activityExpectedToStartService);
-        String nextStartedService = shadowActivity.getNextStartedService().getComponent().getClassName();
-        assertThat(nextStartedService).isEqualTo(RadioPlayerService.class.getName());
+        assertThatServiceStarted(RadioPlayerService.class, activityExpectedToStartService);
     }
 
     private void assertThatRadioPlayerServiceIsBoundTo(RadioPlayerActivity activityExpectedToBindToService) {
@@ -322,6 +321,23 @@ public class RadioPlayerActivityTest {
 
     private void assertThatRadioPlayerServiceIsUnboundFrom(RadioPlayerActivity activityExpectedToUnbindFromService) {
         verify(activityExpectedToUnbindFromService.radioPlayerServiceConnection).onServiceDisconnected(any(ComponentName.class));
+    }
+
+    private void assertThatServiceStarted(Class<? extends Service> serviceClass, RadioPlayerActivity activityExpectedToStartService) {
+        ShadowActivity shadowActivity = shadowOf(activityExpectedToStartService);
+        Intent nextStartedService;
+
+        do {
+            nextStartedService = shadowActivity.getNextStartedService();
+            if (nextStartedService != null) {
+                String nextStartedServiceName = nextStartedService.getComponent().getClassName();
+                if (nextStartedServiceName.equals(serviceClass.getName())) {
+                    return;
+                }
+            }
+        } while (nextStartedService != null);
+
+        throw new AssertionError(String.format("Was expecting the service %s to be started by the activity %s", serviceClass.getName(), activityExpectedToStartService.getClass().getName()));
     }
 
     private void assertToastDisplayed(String expectedToastText) {
