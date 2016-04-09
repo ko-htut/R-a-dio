@@ -16,7 +16,7 @@ import java.io.IOException;
 
 public class RadioPlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
 
-    protected MediaPlayer mediaPlayer;
+    MediaPlayer mediaPlayer;
 
     private final IBinder radioPlayerBinder = new RadioPlayerBinder();
 

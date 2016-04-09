@@ -25,13 +25,12 @@ import butterknife.OnClick;
 
 public class RadioPlayerActivity extends AppCompatActivity implements RadioPlayerPresenter.View {
 
-    protected RadioPlayerPresenter radioPlayerPresenter;
+    RadioPlayerPresenter radioPlayerPresenter;
 
-    protected RadioPlayerService radioPlayerService;
+    RadioPlayerService radioPlayerService;
+    ServiceConnection radioPlayerServiceConnection;
+    BroadcastReceiver failedToPlayStreamBroadcastReceiver;
 
-    protected ServiceConnection serviceConnection;
-
-    protected BroadcastReceiver receiver;
 
     @Bind(R.id.track_title)
     TextView trackTitleView;
@@ -63,9 +62,8 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         radioPlayerPresenter = Injector.provideRadioPlayerPresenter();
         radioPlayerPresenter.attachView(this);
 
-        serviceConnection = initServiceConnection();
-
-        receiver = initBroadcastReceiver();
+        radioPlayerServiceConnection = initRadioPlayerServiceConnection();
+        failedToPlayStreamBroadcastReceiver = initFailedToPlayStreamBroadcastReceiver();
     }
 
     @Override
@@ -101,16 +99,16 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
     }
 
     public void bindToRadioPlayerService() {
-        bindService(getServiceIntent(), serviceConnection, Context.BIND_AUTO_CREATE);
+        bindService(getServiceIntent(), radioPlayerServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     public void unbindFromRadioPlayerService() {
-        unbindService(serviceConnection);
+        unbindService(radioPlayerServiceConnection);
         radioPlayerPresenter.onRadioPlayerServiceDisconnected();
         radioPlayerService = null;
     }
 
-    private ServiceConnection initServiceConnection() {
+    private ServiceConnection initRadioPlayerServiceConnection() {
         return new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -128,14 +126,14 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
     }
 
     public void registerBroadcastReceiverToListenLocallyFor(String broadcastIntentAction) {
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, new IntentFilter(broadcastIntentAction));
+        LocalBroadcastManager.getInstance(this).registerReceiver(failedToPlayStreamBroadcastReceiver, new IntentFilter(broadcastIntentAction));
     }
 
     public void unregisterBroadcastReceiver() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(failedToPlayStreamBroadcastReceiver);
     }
 
-    private BroadcastReceiver initBroadcastReceiver() {
+    private BroadcastReceiver initFailedToPlayStreamBroadcastReceiver() {
         return new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {

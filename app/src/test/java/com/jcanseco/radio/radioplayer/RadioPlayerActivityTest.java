@@ -53,7 +53,7 @@ public class RadioPlayerActivityTest {
         radioPlayerService = mock(RadioPlayerService.class);
         radioPlayerActivity.radioPlayerService = radioPlayerService;
 
-        radioPlayerActivity.serviceConnection = buildMockServiceConnection();
+        radioPlayerActivity.radioPlayerServiceConnection = buildMockServiceConnection();
     }
 
     @After
@@ -137,7 +137,7 @@ public class RadioPlayerActivityTest {
 
         RadioPlayerService.RadioPlayerBinder binder = mock(RadioPlayerService.RadioPlayerBinder.class);
         when(binder.getService()).thenReturn(radioPlayerService);
-        radioPlayerActivity.serviceConnection.onServiceConnected(mock(ComponentName.class), binder);
+        radioPlayerActivity.radioPlayerServiceConnection.onServiceConnected(mock(ComponentName.class), binder);
 
         verify(binder).getService();
         assertThat(radioPlayerActivity.radioPlayerService).isSameAs(binder.getService());
@@ -152,7 +152,7 @@ public class RadioPlayerActivityTest {
 
         RadioPlayerService.RadioPlayerBinder binder = mock(RadioPlayerService.RadioPlayerBinder.class);
         when(binder.getService()).thenReturn(radioPlayerService);
-        radioPlayerActivity.serviceConnection.onServiceConnected(mock(ComponentName.class), binder);
+        radioPlayerActivity.radioPlayerServiceConnection.onServiceConnected(mock(ComponentName.class), binder);
 
         verify(radioPlayerPresenter).onRadioPlayerServiceConnected(isServiceCurrentlyPlayingStream);
     }
@@ -166,7 +166,7 @@ public class RadioPlayerActivityTest {
 
         RadioPlayerService.RadioPlayerBinder binder = mock(RadioPlayerService.RadioPlayerBinder.class);
         when(binder.getService()).thenReturn(radioPlayerService);
-        radioPlayerActivity.serviceConnection.onServiceConnected(mock(ComponentName.class), binder);
+        radioPlayerActivity.radioPlayerServiceConnection.onServiceConnected(mock(ComponentName.class), binder);
 
         verify(radioPlayerPresenter).onRadioPlayerServiceConnected(isServiceCurrentlyPlayingStream);
     }
@@ -177,7 +177,7 @@ public class RadioPlayerActivityTest {
         radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
         radioPlayerActivity.radioPlayerService = radioPlayerService;
 
-        radioPlayerActivity.serviceConnection.onServiceDisconnected(mock(ComponentName.class));
+        radioPlayerActivity.radioPlayerServiceConnection.onServiceDisconnected(mock(ComponentName.class));
 
         assertThat(radioPlayerActivity.radioPlayerService).isNull();
     }
@@ -187,14 +187,14 @@ public class RadioPlayerActivityTest {
         RadioPlayerActivity radioPlayerActivity = Robolectric.buildActivity(RadioPlayerActivity.class).create().get();
         radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
 
-        radioPlayerActivity.serviceConnection.onServiceDisconnected(mock(ComponentName.class));
+        radioPlayerActivity.radioPlayerServiceConnection.onServiceDisconnected(mock(ComponentName.class));
 
         verify(radioPlayerPresenter).onRadioPlayerServiceDisconnected();
     }
 
     @Test
     public void onFailedToPlayStreamBroadcastReceived_notifyPresenter() {
-        radioPlayerActivity.receiver.onReceive(mock(Context.class), mock(Intent.class));
+        radioPlayerActivity.failedToPlayStreamBroadcastReceiver.onReceive(mock(Context.class), mock(Intent.class));
 
         verify(radioPlayerPresenter).onFailedToPlayStreamBroadcastReceived();
     }
@@ -317,11 +317,11 @@ public class RadioPlayerActivityTest {
     }
 
     private void assertThatRadioPlayerServiceIsBoundTo(RadioPlayerActivity activityExpectedToBindToService) {
-        verify(activityExpectedToBindToService.serviceConnection).onServiceConnected(any(ComponentName.class), any(RadioPlayerService.RadioPlayerBinder.class));
+        verify(activityExpectedToBindToService.radioPlayerServiceConnection).onServiceConnected(any(ComponentName.class), any(RadioPlayerService.RadioPlayerBinder.class));
     }
 
     private void assertThatRadioPlayerServiceIsUnboundFrom(RadioPlayerActivity activityExpectedToUnbindFromService) {
-        verify(activityExpectedToUnbindFromService.serviceConnection).onServiceDisconnected(any(ComponentName.class));
+        verify(activityExpectedToUnbindFromService.radioPlayerServiceConnection).onServiceDisconnected(any(ComponentName.class));
     }
 
     private void assertToastDisplayed(String expectedToastText) {

@@ -45,7 +45,7 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
     }
 
     public void onRadioPlayerServiceConnected(boolean isServiceCurrentlyPlayingStream) {
-        if(isServiceCurrentlyPlayingStream) {
+        if (isServiceCurrentlyPlayingStream) {
             setPlayerStateAsPlaying();
         } else {
             setPlayerStateAsPaused();
