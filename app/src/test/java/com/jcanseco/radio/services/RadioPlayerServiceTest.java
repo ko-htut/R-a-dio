@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.os.PowerManager;
 
 import com.jcanseco.radio.BuildConfig;
+import com.jcanseco.radio.constants.Constants;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -85,12 +86,12 @@ public class RadioPlayerServiceTest {
     }
 
     @Test
-    public void whenStartPlayingRadioStreamInvoked_ifIOExceptionThrown_thenSendOutBroadcastToNotifyUserOfFailureToPlayStream() throws Exception {
+    public void whenStartPlayingRadioStreamInvoked_ifIOExceptionThrown_thenSendOutFailureToPlayStreamBroadcast() throws Exception {
         MediaPlayer mediaPlayer = mock(MediaPlayer.class);
         doThrow(new IOException()).when(mediaPlayer).setDataSource(anyString());
         radioPlayerService.mediaPlayer = mediaPlayer;
 
-        String expectedBroadcastIntentAction = "com.jcanseco.radio.constants.Constants.Actions.NOTIFY_USER_OF_FAILURE_TO_PLAY_RADIO_STREAM";
+        String expectedBroadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
         BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
 
         radioPlayerService.startPlayingRadioStream("http://streamurl.com");
@@ -99,12 +100,12 @@ public class RadioPlayerServiceTest {
     }
 
     @Test
-    public void whenStartPlayingRadioStreamInvoked_ifIllegalStateExceptionThrown_thenSendOutBroadcastToNotifyUserOfFailureToPlayStream() {
+    public void whenStartPlayingRadioStreamInvoked_ifIllegalStateExceptionThrown_thenSendOutFailureToPlayStreamBroadcast() {
         MediaPlayer mediaPlayer = mock(MediaPlayer.class);
         doThrow(new IllegalStateException()).when(mediaPlayer).prepareAsync();
         radioPlayerService.mediaPlayer = mediaPlayer;
 
-        String expectedBroadcastIntentAction = "com.jcanseco.radio.constants.Constants.Actions.NOTIFY_USER_OF_FAILURE_TO_PLAY_RADIO_STREAM";
+        String expectedBroadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
         BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
 
         radioPlayerService.startPlayingRadioStream("http://streamurl.com");

@@ -1,6 +1,5 @@
 package com.jcanseco.radio.radioplayer;
 
-import com.jcanseco.radio.constants.Constants;
 import com.jcanseco.radio.loaders.RadioContentLoader;
 import com.jcanseco.radio.models.Dj;
 import com.jcanseco.radio.models.NowPlayingTrack;
@@ -28,7 +27,7 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
     public void onStart() {
         radioPlayerView.startRadioPlayerService();
         radioPlayerView.bindToRadioPlayerService();
-        radioPlayerView.registerBroadcastReceiverToListenLocallyFor(Constants.Actions.NOTIFY_USER_OF_FAILURE_TO_PLAY_RADIO_STREAM);
+        radioPlayerView.registerFailedToPlayStreamBroadcastReceiver();
     }
 
     public void onResume() {
@@ -41,7 +40,7 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
     public void onStop() {
         radioPlayerView.unbindFromRadioPlayerService();
-        radioPlayerView.unregisterBroadcastReceiver();
+        radioPlayerView.unregisterFailedToPlayStreamBroadcastReceiver();
     }
 
     public void onRadioPlayerServiceConnected(boolean isServiceCurrentlyPlayingStream) {
@@ -142,9 +141,9 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
         void unbindFromRadioPlayerService();
 
-        void registerBroadcastReceiverToListenLocallyFor(String broadcastIntentAction);
+        void registerFailedToPlayStreamBroadcastReceiver();
 
-        void unregisterBroadcastReceiver();
+        void unregisterFailedToPlayStreamBroadcastReceiver();
 
         void showPlayButton();
 

@@ -46,7 +46,7 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
             mediaPlayer.setDataSource(streamUrl);
             mediaPlayer.prepareAsync();
         } catch (IOException | IllegalStateException e) {
-            Intent intent = new Intent(Constants.Actions.NOTIFY_USER_OF_FAILURE_TO_PLAY_RADIO_STREAM);
+            Intent intent = new Intent(Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM);
             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
         }
     }

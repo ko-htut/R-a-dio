@@ -50,11 +50,10 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void onStart_shouldRegisterBroadcastReceiverToListenForBroadcastIndicatingFailureToPlayStream() {
+    public void onStart_shouldRegisterFailedToPlayStreamBroadcastReceiver() {
         radioPlayerPresenter.onStart();
 
-        String expectedBroadcastIntentAction = "com.jcanseco.radio.constants.Constants.Actions.NOTIFY_USER_OF_FAILURE_TO_PLAY_RADIO_STREAM";
-        verify(radioPlayerView).registerBroadcastReceiverToListenLocallyFor(expectedBroadcastIntentAction);
+        verify(radioPlayerView).registerFailedToPlayStreamBroadcastReceiver();
     }
 
     @Test
@@ -79,10 +78,10 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void onStop_shouldUnregisterReceiver() {
+    public void onStop_shouldUnregisterFailedToPlayStreamBroadcastReceiver() {
         radioPlayerPresenter.onStop();
 
-        radioPlayerView.unregisterBroadcastReceiver();
+        radioPlayerView.unregisterFailedToPlayStreamBroadcastReceiver();
     }
 
     @Test

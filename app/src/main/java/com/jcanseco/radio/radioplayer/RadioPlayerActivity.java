@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jcanseco.radio.R;
+import com.jcanseco.radio.constants.Constants;
 import com.jcanseco.radio.injectors.Injector;
 import com.jcanseco.radio.services.RadioPlayerService;
 
@@ -125,11 +126,12 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         };
     }
 
-    public void registerBroadcastReceiverToListenLocallyFor(String broadcastIntentAction) {
+    public void registerFailedToPlayStreamBroadcastReceiver() {
+        String broadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
         LocalBroadcastManager.getInstance(this).registerReceiver(failedToPlayStreamBroadcastReceiver, new IntentFilter(broadcastIntentAction));
     }
 
-    public void unregisterBroadcastReceiver() {
+    public void unregisterFailedToPlayStreamBroadcastReceiver() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(failedToPlayStreamBroadcastReceiver);
     }
 
