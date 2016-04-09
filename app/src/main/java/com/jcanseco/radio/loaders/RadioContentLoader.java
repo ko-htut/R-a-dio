@@ -3,6 +3,7 @@ package com.jcanseco.radio.loaders;
 import com.jcanseco.radio.api.RadioRestService;
 import com.jcanseco.radio.models.NowPlayingTrack;
 import com.jcanseco.radio.models.RadioContent;
+import com.jcanseco.radio.tasks.RadioContentLoaderTimerTask;
 
 import java.util.Timer;
 import java.util.TimerTask;

@@ -1,4 +1,6 @@
-package com.jcanseco.radio.loaders;
+package com.jcanseco.radio.tasks;
+
+import com.jcanseco.radio.loaders.RadioContentLoader;
 
 import java.util.TimerTask;
 
