@@ -2,7 +2,9 @@ package com.jcanseco.radio.models;
 
 import com.google.gson.annotations.SerializedName;
 
-public class Dj {
+import java.io.Serializable;
+
+public class Dj implements Serializable {
 
     @SerializedName("djname")
     private String name;

@@ -2,9 +2,10 @@ package com.jcanseco.radio.models;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class RadioContent {
+public class RadioContent implements Serializable {
 
     @SerializedName("main")
     private RadioContentMain radioContentMain;
