@@ -1,4 +1,4 @@
-package com.jcanseco.radio.models.fakes;
+package com.jcanseco.radio.testfakes;
 
 import com.jcanseco.radio.models.Dj;
 import com.jcanseco.radio.models.NowPlayingTrack;

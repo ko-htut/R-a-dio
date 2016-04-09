@@ -1,7 +1,7 @@
 package com.jcanseco.radio.radioplayer;
 
 import com.jcanseco.radio.loaders.RadioContentLoader;
-import com.jcanseco.radio.models.fakes.FakeRadioContent;
+import com.jcanseco.radio.testfakes.FakeRadioContent;
 
 import org.junit.Before;
 import org.junit.Test;
