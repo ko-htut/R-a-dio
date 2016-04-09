@@ -29,6 +29,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,17 +72,31 @@ public class RadioContentLoaderTest {
     }
 
     @Test
-    public void whenBeginActiveLoadingOfContentInvoked_loaderShouldBeSetupForActiveLoading() {
+    public void whenBeginActiveLoadingOfContentInvoked_ifNotCurrentlySetUpForActiveLoading_thenLoaderShouldBeSetupForActiveLoading() {
+        when(radioContentLoader.isSetupForActiveLoading()).thenReturn(false).thenCallRealMethod();
+
         radioContentLoader.beginActiveLoadingOfContent();
 
         assertThat(radioContentLoader.isSetupForActiveLoading()).isTrue();
     }
 
     @Test
-    public void whenBeginActiveLoadingOfContentInvoked_shouldInitNewTimer() {
+    public void whenBeginActiveLoadingOfContentInvoked_ifNotCurrentlySetUpForActiveLoading_thenShouldInitNewTimer() {
+        when(radioContentLoader.isSetupForActiveLoading()).thenReturn(false);
+
         radioContentLoader.beginActiveLoadingOfContent();
 
         verify(radioContentLoader).initNewTimer();
+    }
+
+    @Test
+    public void whenBeginActiveLoadingOfContentInvoked_ifAlreadySetUpForActiveLoading_thenDoNothing() {
+        when(radioContentLoader.isSetupForActiveLoading()).thenReturn(true);
+
+        radioContentLoader.beginActiveLoadingOfContent();
+
+        verify(radioContentLoader, never()).initNewTimer();
+        verify(radioContentLoader, never()).loadContent();
     }
 
     @Test

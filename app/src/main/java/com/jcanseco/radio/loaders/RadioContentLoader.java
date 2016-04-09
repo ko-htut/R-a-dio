@@ -31,9 +31,11 @@ public class RadioContentLoader {
     }
 
     public void beginActiveLoadingOfContent() {
-        isSetupForActiveLoading = true;
-        timer = initNewTimer();
-        loadContent();
+        if (!isSetupForActiveLoading()) {
+            isSetupForActiveLoading = true;
+            timer = initNewTimer();
+            loadContent();
+        }
     }
 
     public void stopActiveLoadingOfContent() {
