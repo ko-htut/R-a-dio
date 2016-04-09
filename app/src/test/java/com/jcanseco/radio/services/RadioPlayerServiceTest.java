@@ -1,20 +1,16 @@
 package com.jcanseco.radio.services;
 
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.PowerManager;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.jcanseco.radio.BuildConfig;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.exceptions.base.MockitoAssertionError;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
@@ -23,6 +19,8 @@ import org.robolectric.util.ServiceController;
 
 import java.io.IOException;
 
+import static com.jcanseco.radio.testutilities.BroadcastTestingUtilities.buildMockLocalBroadcastReceiver;
+import static com.jcanseco.radio.testutilities.BroadcastTestingUtilities.verifyThatReceiverReceivedExpectedBroadcast;
 import static junit.framework.Assert.assertTrue;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -93,7 +91,7 @@ public class RadioPlayerServiceTest {
         radioPlayerService.mediaPlayer = mediaPlayer;
 
         String expectedBroadcastIntentAction = "com.jcanseco.radio.constants.Constants.Actions.NOTIFY_USER_OF_FAILURE_TO_PLAY_RADIO_STREAM";
-        BroadcastReceiver receiver = setupMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
+        BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
 
         radioPlayerService.startPlayingRadioStream("http://streamurl.com");
 
@@ -107,7 +105,7 @@ public class RadioPlayerServiceTest {
         radioPlayerService.mediaPlayer = mediaPlayer;
 
         String expectedBroadcastIntentAction = "com.jcanseco.radio.constants.Constants.Actions.NOTIFY_USER_OF_FAILURE_TO_PLAY_RADIO_STREAM";
-        BroadcastReceiver receiver = setupMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
+        BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
 
         radioPlayerService.startPlayingRadioStream("http://streamurl.com");
 
@@ -156,24 +154,5 @@ public class RadioPlayerServiceTest {
 
         verify(mediaPlayer).reset();
         assertTrue(wasErrorHandled);
-    }
-
-    private BroadcastReceiver setupMockLocalBroadcastReceiver(String expectedBroadcastIntentAction) {
-        Context context = ShadowApplication.getInstance().getApplicationContext();
-        BroadcastReceiver receiver = mock(BroadcastReceiver.class);
-        LocalBroadcastManager.getInstance(context)
-                .registerReceiver(receiver, new IntentFilter(expectedBroadcastIntentAction));
-        return receiver;
-    }
-
-    private void verifyThatReceiverReceivedExpectedBroadcast(BroadcastReceiver receiverSetToListenForParticularIntentAction, String expectedBroadcastIntentAction) {
-        try {
-            verify(receiverSetToListenForParticularIntentAction).onReceive(any(Context.class), any(Intent.class));
-        } catch (MockitoAssertionError e) {
-            String errorMessage = String.format("Was expecting broadcast receiver to receive a broadcast with " +
-                    "the following intent action: %s. Either the receiver was not set up correctly to receive " +
-                    "the aforementioned intent action, or no broadcast with the intent action was sent out at all.", expectedBroadcastIntentAction);
-            throw new MockitoAssertionError(errorMessage);
-        }
     }
 }
