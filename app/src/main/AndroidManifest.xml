@@ -22,6 +22,8 @@
         </activity>
 
         <service android:name=".services.RadioPlayerService" />
+
+        <service android:name=".services.RadioContentService" />
     </application>
 
 </manifest>

@@ -12,6 +12,9 @@ import android.widget.TextView;
 
 import com.jcanseco.radio.BuildConfig;
 import com.jcanseco.radio.R;
+import com.jcanseco.radio.constants.Constants;
+import com.jcanseco.radio.models.RadioContent;
+import com.jcanseco.radio.services.RadioContentService;
 import com.jcanseco.radio.services.RadioPlayerService;
 
 import org.junit.After;
@@ -40,8 +43,11 @@ public class RadioPlayerActivityTest {
 
     private ActivityController<RadioPlayerActivity> activityController;
     private RadioPlayerActivity radioPlayerActivity;
+
     private RadioPlayerPresenter radioPlayerPresenter;
+
     private RadioPlayerService radioPlayerService;
+    private RadioContentService radioContentService;
 
     @Before
     public void setup() {
@@ -54,7 +60,11 @@ public class RadioPlayerActivityTest {
         radioPlayerService = mock(RadioPlayerService.class);
         radioPlayerActivity.radioPlayerService = radioPlayerService;
 
+        radioContentService = mock(RadioContentService.class);
+        radioPlayerActivity.radioContentService = radioContentService;
+
         radioPlayerActivity.radioPlayerServiceConnection = buildMockServiceConnection();
+        radioPlayerActivity.radioContentServiceConnection = buildMockServiceConnection();
     }
 
     @After
@@ -70,20 +80,6 @@ public class RadioPlayerActivityTest {
     }
 
     @Test
-    public void onResume_shouldNotifyPresenter() {
-        activityController.start().resume();
-
-        verify(radioPlayerPresenter).onResume();
-    }
-
-    @Test
-    public void onPause_shouldNotifyPresenter() {
-        activityController.start().resume().visible().pause();
-
-        verify(radioPlayerPresenter).onPause();
-    }
-
-    @Test
     public void onStop_shouldNotifyPresenter() {
         activityController.start().resume().visible().pause().userLeaving().stop();
 
@@ -91,44 +87,125 @@ public class RadioPlayerActivityTest {
     }
 
     @Test
-    public void testStartRadioPlayerService() {
-        radioPlayerActivity.startRadioPlayerService();
+    public void whenStartServicesInvoked_startRadioPlayerService() {
+        radioPlayerActivity.startServices();
 
         assertThatRadioPlayerServiceStartedBy(radioPlayerActivity);
     }
 
     @Test
-    public void testBindToRadioPlayerService() {
-        radioPlayerActivity.bindToRadioPlayerService();
+    public void whenBindToServicesInvoked_bindToRadioContentService() {
+        radioPlayerActivity.bindToServices();
+
+        assertThatRadioContentServiceIsBoundTo(radioPlayerActivity);
+    }
+
+    @Test
+    public void whenBindToServicesInvoked_bindToRadioPlayerService() {
+        radioPlayerActivity.bindToServices();
 
         assertThatRadioPlayerServiceIsBoundTo(radioPlayerActivity);
     }
 
     @Test
-    public void testUnbindFromRadioPlayerService() {
+    public void whenUnbindFromServicesInvoked_unbindFromRadioContentService() {
         activityController.start();
 
-        radioPlayerActivity.unbindFromRadioPlayerService();
+        radioPlayerActivity.unbindFromServices();
+
+        assertThatRadioContentServiceIsUnboundFrom(radioPlayerActivity);
+    }
+
+    @Test
+    public void whenUnbindFromServicesInvoked_unbindFromRadioPlayerService() {
+        activityController.start();
+
+        radioPlayerActivity.unbindFromServices();
 
         assertThatRadioPlayerServiceIsUnboundFrom(radioPlayerActivity);
     }
 
     @Test
-    public void whenUnbindFromRadioPlayerServiceInvoked_thenNotifyPresenterThatServiceHasBeenDisconnected() {
+    public void whenUnbindFromServicesInvoked_thenNotifyPresenterThatRadioContentServiceHasBeenDisconnected() {
         activityController.start();
 
-        radioPlayerActivity.unbindFromRadioPlayerService();
+        radioPlayerActivity.unbindFromServices();
+
+        verify(radioPlayerPresenter).onRadioContentServiceDisconnected();
+    }
+
+    @Test
+    public void whenUnbindFromServicesInvoked_thenNotifyPresenterThatRadioPlayerServiceHasBeenDisconnected() {
+        activityController.start();
+
+        radioPlayerActivity.unbindFromServices();
 
         verify(radioPlayerPresenter).onRadioPlayerServiceDisconnected();
     }
 
+
     @Test
-    public void whenUnbindFromRadioPlayerServiceInvoked_thenDiscardReferenceToService() {
+    public void whenUnbindFromServicesInvoked_thenDiscardReferenceToRadioContentService() {
         activityController.start();
 
-        radioPlayerActivity.unbindFromRadioPlayerService();
+        radioPlayerActivity.unbindFromServices();
+
+        assertThat(radioPlayerActivity.radioContentService).isNull();
+    }
+
+    @Test
+    public void whenUnbindFromServicesInvoked_thenDiscardReferenceToRadioPlayerService() {
+        activityController.start();
+
+        radioPlayerActivity.unbindFromServices();
 
         assertThat(radioPlayerActivity.radioPlayerService).isNull();
+    }
+
+    @Test
+    public void onRadioContentServiceConnected_shouldGetServiceFromIBinder() {
+        RadioPlayerActivity radioPlayerActivity = Robolectric.buildActivity(RadioPlayerActivity.class).create().get();
+        radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
+
+        RadioContentService.RadioContentBinder binder = mock(RadioContentService.RadioContentBinder.class);
+        when(binder.getService()).thenReturn(radioContentService);
+        radioPlayerActivity.radioContentServiceConnection.onServiceConnected(mock(ComponentName.class), binder);
+
+        verify(binder).getService();
+        assertThat(radioPlayerActivity.radioContentService).isSameAs(binder.getService());
+    }
+
+    @Test
+    public void onRadioContentServiceConnected_shouldNotifyPresenter() {
+        RadioPlayerActivity radioPlayerActivity = Robolectric.buildActivity(RadioPlayerActivity.class).create().get();
+        radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
+
+        RadioContentService.RadioContentBinder binder = mock(RadioContentService.RadioContentBinder.class);
+        when(binder.getService()).thenReturn(radioContentService);
+        radioPlayerActivity.radioContentServiceConnection.onServiceConnected(mock(ComponentName.class), binder);
+
+        verify(radioPlayerPresenter).onRadioContentServiceConnected();
+    }
+
+    @Test
+    public void onRadioContentServiceDisconnected_shouldDiscardReferenceToService() {
+        RadioPlayerActivity radioPlayerActivity = Robolectric.buildActivity(RadioPlayerActivity.class).create().get();
+        radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
+        radioPlayerActivity.radioContentService = radioContentService;
+
+        radioPlayerActivity.radioContentServiceConnection.onServiceDisconnected(mock(ComponentName.class));
+
+        assertThat(radioPlayerActivity.radioContentService).isNull();
+    }
+
+    @Test
+    public void onRadioContentServiceDisconnected_shouldNotifyPresenter() {
+        RadioPlayerActivity radioPlayerActivity = Robolectric.buildActivity(RadioPlayerActivity.class).create().get();
+        radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
+
+        radioPlayerActivity.radioContentServiceConnection.onServiceDisconnected(mock(ComponentName.class));
+
+        verify(radioPlayerPresenter).onRadioContentServiceDisconnected();
     }
 
     @Test
@@ -191,6 +268,26 @@ public class RadioPlayerActivityTest {
         radioPlayerActivity.radioPlayerServiceConnection.onServiceDisconnected(mock(ComponentName.class));
 
         verify(radioPlayerPresenter).onRadioPlayerServiceDisconnected();
+    }
+
+    @Test
+    public void onRadioContentLoadSuccessBroadcastReceived_notifyPresenter() {
+        RadioContent radioContent = mock(RadioContent.class);
+        Intent intent = new Intent(Constants.Actions.RADIO_CONTENT_LOAD_SUCCESS);
+        intent.putExtra(Constants.Extras.RADIO_CONTENT, radioContent);
+
+        radioPlayerActivity.radioContentLoadStatusBroadcastReceiver.onReceive(mock(Context.class), intent);
+
+        verify(radioPlayerPresenter).onRadioContentLoadSuccess(radioContent);
+    }
+
+    @Test
+    public void onRadioContentLoadFailedBroadcastReceived_notifyPresenter() {
+        Intent intent = new Intent(Constants.Actions.RADIO_CONTENT_LOAD_FAILED);
+
+        radioPlayerActivity.radioContentLoadStatusBroadcastReceiver.onReceive(mock(Context.class), intent);
+
+        verify(radioPlayerPresenter).onRadioContentLoadFailed();
     }
 
     @Test
@@ -319,8 +416,16 @@ public class RadioPlayerActivityTest {
         verify(activityExpectedToBindToService.radioPlayerServiceConnection).onServiceConnected(any(ComponentName.class), any(RadioPlayerService.RadioPlayerBinder.class));
     }
 
+    private void assertThatRadioContentServiceIsBoundTo(RadioPlayerActivity activityExpectedToBindToService) {
+        verify(activityExpectedToBindToService.radioContentServiceConnection).onServiceConnected(any(ComponentName.class), any(RadioContentService.RadioContentBinder.class));
+    }
+
     private void assertThatRadioPlayerServiceIsUnboundFrom(RadioPlayerActivity activityExpectedToUnbindFromService) {
         verify(activityExpectedToUnbindFromService.radioPlayerServiceConnection).onServiceDisconnected(any(ComponentName.class));
+    }
+
+    private void assertThatRadioContentServiceIsUnboundFrom(RadioPlayerActivity activityExpectedToUnbindFromService) {
+        verify(activityExpectedToUnbindFromService.radioContentServiceConnection).onServiceDisconnected(any(ComponentName.class));
     }
 
     private void assertThatServiceStarted(Class<? extends Service> serviceClass, RadioPlayerActivity activityExpectedToStartService) {

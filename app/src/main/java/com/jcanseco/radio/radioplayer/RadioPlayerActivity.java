@@ -18,6 +18,8 @@ import android.widget.Toast;
 import com.jcanseco.radio.R;
 import com.jcanseco.radio.constants.Constants;
 import com.jcanseco.radio.injectors.Injector;
+import com.jcanseco.radio.models.RadioContent;
+import com.jcanseco.radio.services.RadioContentService;
 import com.jcanseco.radio.services.RadioPlayerService;
 
 import butterknife.Bind;
@@ -32,6 +34,9 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
     ServiceConnection radioPlayerServiceConnection;
     BroadcastReceiver failedToPlayStreamBroadcastReceiver;
 
+    RadioContentService radioContentService;
+    ServiceConnection radioContentServiceConnection;
+    BroadcastReceiver radioContentLoadStatusBroadcastReceiver;
 
     @Bind(R.id.track_title)
     TextView trackTitleView;
@@ -63,6 +68,9 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         radioPlayerPresenter = Injector.provideRadioPlayerPresenter();
         radioPlayerPresenter.attachView(this);
 
+        radioContentServiceConnection = initRadioContentServiceConnection();
+        radioContentLoadStatusBroadcastReceiver = initRadioContentLoadStatusBroadcastReceiver();
+
         radioPlayerServiceConnection = initRadioPlayerServiceConnection();
         failedToPlayStreamBroadcastReceiver = initFailedToPlayStreamBroadcastReceiver();
     }
@@ -75,38 +83,41 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-        radioPlayerPresenter.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        radioPlayerPresenter.onPause();
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
 
         radioPlayerPresenter.onStop();
     }
 
-    public void startRadioPlayerService() {
-        startService(getServiceIntent());
+    public void startServices() {
+        startRadioPlayerService();
     }
 
-    public void bindToRadioPlayerService() {
-        bindService(getServiceIntent(), radioPlayerServiceConnection, Context.BIND_AUTO_CREATE);
+    public void bindToServices() {
+        bindToRadioContentService();
+        bindToRadioPlayerService();
     }
 
-    public void unbindFromRadioPlayerService() {
-        unbindService(radioPlayerServiceConnection);
-        radioPlayerPresenter.onRadioPlayerServiceDisconnected();
-        radioPlayerService = null;
+    public void unbindFromServices() {
+        unbindFromRadioContentService();
+        unbindFromRadioPlayerService();
+    }
+
+    private ServiceConnection initRadioContentServiceConnection() {
+        return new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder binder) {
+                RadioContentService.RadioContentBinder radioContentBinder = (RadioContentService.RadioContentBinder) binder;
+                radioContentService = radioContentBinder.getService();
+                radioPlayerPresenter.onRadioContentServiceConnected();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                radioPlayerPresenter.onRadioContentServiceDisconnected();
+                radioContentService = null;
+            }
+        };
     }
 
     private ServiceConnection initRadioPlayerServiceConnection() {
@@ -126,13 +137,51 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         };
     }
 
-    public void registerFailedToPlayStreamBroadcastReceiver() {
+    public void registerBroadcastReceivers() {
+        registerRadioContentLoadStatusBroadcastReceiver();
+        registerFailedToPlayStreamBroadcastReceiver();
+    }
+
+    public void unregisterBroadcastReceivers() {
+        unregisterRadioContentLoadStatusBroadcastReceiver();
+        unregisterFailedToPlayStreamBroadcastReceiver();
+    }
+
+    private void registerRadioContentLoadStatusBroadcastReceiver() {
+        String broadcastIntentActionForLoadSuccess = Constants.Actions.RADIO_CONTENT_LOAD_SUCCESS;
+        LocalBroadcastManager.getInstance(this).registerReceiver(radioContentLoadStatusBroadcastReceiver, new IntentFilter(broadcastIntentActionForLoadSuccess));
+
+        String broadcastIntentActionForLoadFailed = Constants.Actions.RADIO_CONTENT_LOAD_FAILED;
+        LocalBroadcastManager.getInstance(this).registerReceiver(radioContentLoadStatusBroadcastReceiver, new IntentFilter(broadcastIntentActionForLoadFailed));
+    }
+
+    private void unregisterRadioContentLoadStatusBroadcastReceiver() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(radioContentLoadStatusBroadcastReceiver);
+    }
+
+    private void registerFailedToPlayStreamBroadcastReceiver() {
         String broadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
         LocalBroadcastManager.getInstance(this).registerReceiver(failedToPlayStreamBroadcastReceiver, new IntentFilter(broadcastIntentAction));
     }
 
-    public void unregisterFailedToPlayStreamBroadcastReceiver() {
+    private void unregisterFailedToPlayStreamBroadcastReceiver() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(failedToPlayStreamBroadcastReceiver);
+    }
+
+    private BroadcastReceiver initRadioContentLoadStatusBroadcastReceiver() {
+        return new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                RadioContent radioContent = (RadioContent) intent.getSerializableExtra(Constants.Extras.RADIO_CONTENT);
+
+                if (Constants.Actions.RADIO_CONTENT_LOAD_SUCCESS.equals(action)) {
+                    radioPlayerPresenter.onRadioContentLoadSuccess(radioContent);
+                } else if (Constants.Actions.RADIO_CONTENT_LOAD_FAILED.equals(action)) {
+                    radioPlayerPresenter.onRadioContentLoadFailed();
+                }
+            }
+        };
     }
 
     private BroadcastReceiver initFailedToPlayStreamBroadcastReceiver() {
@@ -195,7 +244,35 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         Toast.makeText(this, R.string.failed_to_load_stream, Toast.LENGTH_SHORT).show();
     }
 
-    private Intent getServiceIntent() {
+    private void bindToRadioContentService() {
+        bindService(getRadioContentServiceIntent(), radioContentServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private void unbindFromRadioContentService() {
+        unbindService(radioContentServiceConnection);
+        radioPlayerPresenter.onRadioContentServiceDisconnected();
+        radioContentService = null;
+    }
+
+    private void startRadioPlayerService() {
+        startService(getRadioPlayerServiceIntent());
+    }
+
+    private void bindToRadioPlayerService() {
+        bindService(getRadioPlayerServiceIntent(), radioPlayerServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private void unbindFromRadioPlayerService() {
+        unbindService(radioPlayerServiceConnection);
+        radioPlayerPresenter.onRadioPlayerServiceDisconnected();
+        radioPlayerService = null;
+    }
+
+    private Intent getRadioContentServiceIntent() {
+        return new Intent(this, RadioContentService.class);
+    }
+
+    private Intent getRadioPlayerServiceIntent() {
         return new Intent(this, RadioPlayerService.class);
     }
 }

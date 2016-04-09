@@ -4,10 +4,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
+import org.mockito.ArgumentCaptor;
 import org.robolectric.shadows.ShadowApplication;
 
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -28,6 +31,20 @@ public class BroadcastTestingUtilities {
         } catch (AssertionError e) {
             throwFailedToReceiveBroadcastError(expectedBroadcastIntentAction);
         }
+    }
+
+    public static void verifyThatReceiverReceivedBroadcastWithExtra(BroadcastReceiver receiver, String expectedBroadcastIntentAction, String expectedExtraKey, Object expectedExtraValue) {
+        ArgumentCaptor<Intent> argumentCaptor = ArgumentCaptor.forClass(Intent.class);
+
+        try {
+            verify(receiver).onReceive(any(Context.class), argumentCaptor.capture());
+        } catch (AssertionError e) {
+            throwFailedToReceiveBroadcastError(expectedBroadcastIntentAction);
+        }
+
+        Bundle extras = argumentCaptor.getValue().getExtras();
+        assertThat(extras.get(expectedExtraKey)).isNotNull();
+        assertThat(extras.get(expectedExtraKey)).isSameAs(expectedExtraValue);
     }
 
     public static void throwFailedToReceiveBroadcastError(String expectedBroadcastIntentAction) {

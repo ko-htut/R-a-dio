@@ -1,6 +1,5 @@
 package com.jcanseco.radio.radioplayer;
 
-import com.jcanseco.radio.loaders.RadioContentLoader;
 import com.jcanseco.radio.testfakes.FakeRadioContent;
 
 import org.junit.Before;
@@ -24,14 +23,11 @@ public class RadioPlayerPresenterTest {
     private RadioPlayerPresenter radioPlayerPresenter;
 
     @Mock
-    private RadioContentLoader radioContentLoader;
-
-    @Mock
     private RadioPlayerPresenter.View radioPlayerView;
 
     @Before
     public void setup() {
-        radioPlayerPresenter = spy(new RadioPlayerPresenter(radioContentLoader));
+        radioPlayerPresenter = spy(new RadioPlayerPresenter());
         radioPlayerPresenter.attachView(radioPlayerView);
     }
 
@@ -39,49 +35,54 @@ public class RadioPlayerPresenterTest {
     public void onStart_shouldStartRadioPlayerService() {
         radioPlayerPresenter.onStart();
 
-        verify(radioPlayerView).startRadioPlayerService();
+        verify(radioPlayerView).startServices();
     }
 
     @Test
     public void onStart_shouldBindToRadioPlayerService() {
         radioPlayerPresenter.onStart();
 
-        verify(radioPlayerView).bindToRadioPlayerService();
+        verify(radioPlayerView).bindToServices();
     }
 
     @Test
-    public void onStart_shouldRegisterFailedToPlayStreamBroadcastReceiver() {
+    public void onStart_shouldRegisterBroadcastReceivers() {
         radioPlayerPresenter.onStart();
 
-        verify(radioPlayerView).registerFailedToPlayStreamBroadcastReceiver();
-    }
-
-    @Test
-    public void onResume_shouldBeginActiveLoadingOfRadioContent() {
-        radioPlayerPresenter.onResume();
-
-        verify(radioContentLoader).beginActiveLoadingOfContent();
-    }
-
-    @Test
-    public void onPause_shouldStopActiveLoadingOfRadioContent() {
-        radioPlayerPresenter.onPause();
-
-        verify(radioContentLoader).stopActiveLoadingOfContent();
+        verify(radioPlayerView).registerBroadcastReceivers();
     }
 
     @Test
     public void onStop_shouldUnbindFromRadioPlayerService() {
         radioPlayerPresenter.onStop();
 
-        radioPlayerView.unbindFromRadioPlayerService();
+        radioPlayerView.unbindFromServices();
     }
 
     @Test
-    public void onStop_shouldUnregisterFailedToPlayStreamBroadcastReceiver() {
+    public void onStop_shouldUnregisterBroadcastReceivers() {
         radioPlayerPresenter.onStop();
 
-        radioPlayerView.unregisterFailedToPlayStreamBroadcastReceiver();
+        radioPlayerView.unregisterBroadcastReceivers();
+    }
+
+    @Test
+    public void radioContentServiceShouldNotBeConnectedByDefault() {
+        assertThat(radioPlayerPresenter.isRadioContentServiceConnected()).isFalse();
+    }
+
+    @Test
+    public void onRadioContentServiceConnected_shouldIndicateThatServiceIsConnected() {
+        radioPlayerPresenter.onRadioContentServiceConnected();
+
+        assertThat(radioPlayerPresenter.isRadioContentServiceConnected()).isTrue();
+    }
+
+    @Test
+    public void onRadioContentServiceDisconnected_shouldIndicateThatServiceIsNotConnected() {
+        radioPlayerPresenter.onRadioContentServiceDisconnected();
+
+        assertThat(radioPlayerPresenter.isRadioContentServiceConnected()).isFalse();
     }
 
     @Test
@@ -123,8 +124,8 @@ public class RadioPlayerPresenterTest {
 
     @Test
     public void onRadioPlayerServiceConnected_shouldIndicateThatServiceIsConnected_regardlessOfWhetherServiceIsCurrentlyPlayingStream() {
-        RadioPlayerPresenter radioPlayerPresenter1 = spy(new RadioPlayerPresenter(mock(RadioContentLoader.class)));
-        RadioPlayerPresenter radioPlayerPresenter2 = spy(new RadioPlayerPresenter(mock(RadioContentLoader.class)));
+        RadioPlayerPresenter radioPlayerPresenter1 = spy(new RadioPlayerPresenter());
+        RadioPlayerPresenter radioPlayerPresenter2 = spy(new RadioPlayerPresenter());
         radioPlayerPresenter1.attachView(mock(RadioPlayerPresenter.View.class));
         radioPlayerPresenter2.attachView(mock(RadioPlayerPresenter.View.class));
 

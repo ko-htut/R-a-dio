@@ -1,46 +1,40 @@
 package com.jcanseco.radio.radioplayer;
 
-import com.jcanseco.radio.loaders.RadioContentLoader;
 import com.jcanseco.radio.models.Dj;
 import com.jcanseco.radio.models.NowPlayingTrack;
 import com.jcanseco.radio.models.RadioContent;
 
-public class RadioPlayerPresenter implements RadioContentLoader.RadioContentListener {
+public class RadioPlayerPresenter {
 
     private RadioPlayerPresenter.View radioPlayerView;
-    private RadioContentLoader radioContentLoader;
 
     private boolean isPlayerPlaying;
     private String radioStreamUrl;
 
+    private boolean isRadioContentServiceConnected;
     private boolean isRadioPlayerServiceConnected;
-
-    public RadioPlayerPresenter(RadioContentLoader radioContentLoader) {
-        this.radioContentLoader = radioContentLoader;
-        this.radioContentLoader.setRadioContentListener(this);
-    }
 
     public void attachView(RadioPlayerPresenter.View radioPlayerView) {
         this.radioPlayerView = radioPlayerView;
     }
 
     public void onStart() {
-        radioPlayerView.startRadioPlayerService();
-        radioPlayerView.bindToRadioPlayerService();
-        radioPlayerView.registerFailedToPlayStreamBroadcastReceiver();
-    }
-
-    public void onResume() {
-        radioContentLoader.beginActiveLoadingOfContent();
-    }
-
-    public void onPause() {
-        radioContentLoader.stopActiveLoadingOfContent();
+        radioPlayerView.startServices();
+        radioPlayerView.bindToServices();
+        radioPlayerView.registerBroadcastReceivers();
     }
 
     public void onStop() {
-        radioPlayerView.unbindFromRadioPlayerService();
-        radioPlayerView.unregisterFailedToPlayStreamBroadcastReceiver();
+        radioPlayerView.unbindFromServices();
+        radioPlayerView.unregisterBroadcastReceivers();
+    }
+
+    public void onRadioContentServiceConnected() {
+        isRadioContentServiceConnected = true;
+    }
+
+    public void onRadioContentServiceDisconnected() {
+        isRadioContentServiceConnected = false;
     }
 
     public void onRadioPlayerServiceConnected(boolean isServiceCurrentlyPlayingStream) {
@@ -87,7 +81,6 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
         }
     }
 
-    @Override
     public void onRadioContentLoadSuccess(RadioContent radioContent) {
         NowPlayingTrack currentTrack = radioContent.getCurrentTrack();
         Dj currentDj = radioContent.getCurrentDj();
@@ -99,7 +92,6 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
         setRadioStreamUrl(radioContent.getStreamUrl());
     }
 
-    @Override
     public void onRadioContentLoadFailed() {
         radioPlayerView.showCouldNotLoadRadioContentErrorMessage();
         pausePlayer();
@@ -108,6 +100,10 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
     public void onFailedToPlayStreamBroadcastReceived() {
         radioPlayerView.showCouldNotPlayRadioStreamErrorMessage();
         pausePlayer();
+    }
+
+    protected boolean isRadioContentServiceConnected() {
+        return isRadioContentServiceConnected;
     }
 
     protected boolean isRadioPlayerServiceConnected() {
@@ -135,15 +131,15 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
     public interface View {
 
-        void startRadioPlayerService();
+        void startServices();
 
-        void bindToRadioPlayerService();
+        void bindToServices();
 
-        void unbindFromRadioPlayerService();
+        void unbindFromServices();
 
-        void registerFailedToPlayStreamBroadcastReceiver();
+        void registerBroadcastReceivers();
 
-        void unregisterFailedToPlayStreamBroadcastReceiver();
+        void unregisterBroadcastReceivers();
 
         void showPlayButton();
 

@@ -16,6 +16,6 @@ public class Injector {
     }
 
     public static RadioPlayerPresenter provideRadioPlayerPresenter() {
-        return new RadioPlayerPresenter(provideRadioContentLoader());
+        return new RadioPlayerPresenter();
     }
 }
