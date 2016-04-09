@@ -1,4 +1,4 @@
-package com.jcanseco.radio.models.utilities;
+package com.jcanseco.radio.testutilities;
 
 import com.google.gson.Gson;
 

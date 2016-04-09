@@ -1,6 +1,6 @@
 package com.jcanseco.radio.models;
 
-import com.jcanseco.radio.models.utilities.ModelTestingUtilities;
+import com.jcanseco.radio.testutilities.ModelTestingUtilities;
 
 import org.junit.Before;
 import org.junit.Test;
