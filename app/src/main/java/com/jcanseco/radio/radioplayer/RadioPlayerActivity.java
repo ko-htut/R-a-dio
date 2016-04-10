@@ -93,14 +93,17 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         radioPlayerPresenter.onStop();
     }
 
+    @Override
     public void startRadioPlayerService() {
         startService(getServiceIntent());
     }
 
+    @Override
     public void bindToRadioPlayerService() {
         bindService(getServiceIntent(), radioPlayerServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
+    @Override
     public void unbindFromRadioPlayerService() {
         unbindService(radioPlayerServiceConnection);
         radioPlayerPresenter.onRadioPlayerServiceDisconnected();
@@ -119,11 +122,13 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         radioPlayerService = null;
     }
 
+    @Override
     public void registerFailedToPlayStreamBroadcastReceiver() {
         String broadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
         LocalBroadcastManager.getInstance(this).registerReceiver(failedToPlayStreamBroadcastReceiver, new IntentFilter(broadcastIntentAction));
     }
 
+    @Override
     public void unregisterFailedToPlayStreamBroadcastReceiver() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(failedToPlayStreamBroadcastReceiver);
     }
