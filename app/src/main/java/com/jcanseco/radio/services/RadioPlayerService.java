@@ -1,5 +1,7 @@
 package com.jcanseco.radio.services;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -10,13 +12,23 @@ import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.jcanseco.radio.R;
 import com.jcanseco.radio.constants.Constants;
+import com.jcanseco.radio.injectors.Injector;
+import com.jcanseco.radio.loaders.RadioContentLoader;
+import com.jcanseco.radio.models.NowPlayingTrack;
+import com.jcanseco.radio.models.RadioContent;
+import com.jcanseco.radio.radioplayer.RadioPlayerActivity;
 
 import java.io.IOException;
 
-public class RadioPlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
+public class RadioPlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, RadioContentLoader.RadioContentListener {
+
+    private static final int NOTIFICATION_ID = 1;
 
     MediaPlayer mediaPlayer;
+
+    private RadioContentLoader radioContentLoader;
 
     private final IBinder radioPlayerBinder = new RadioPlayerBinder();
 
@@ -25,6 +37,8 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
         super.onCreate();
 
         mediaPlayer = new MediaPlayer();
+        radioContentLoader = Injector.provideRadioContentLoader();
+        radioContentLoader.setRadioContentListener(this);
     }
 
     @Nullable
@@ -42,6 +56,7 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
             prepareMediaPlayerForAsyncStreaming(streamUrl);
         } catch (IOException | IllegalStateException e) {
             sendOutFailedToPlayStreamBroadcast();
+            startForegroundNotification();
         }
     }
 
@@ -51,6 +66,7 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
         } catch (IllegalStateException e) {}
 
         mediaPlayer.reset();
+        stopForegroundNotification();
     }
 
     private void prepareMediaPlayerForAsyncStreaming(String streamUrl) throws IOException, IllegalStateException {
@@ -78,6 +94,41 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
     }
 
+    private void startForegroundNotification() {
+        radioContentLoader.beginActiveLoadingOfContent();
+    }
+
+    private void stopForegroundNotification() {
+        radioContentLoader.stopActiveLoadingOfContent();
+        stopForeground(true);
+    }
+
+    @Override
+    public void onRadioContentLoadSuccess(RadioContent radioContent) {
+        Notification notification = buildForegroundNotification(radioContent);
+        startForeground(NOTIFICATION_ID, notification);
+    }
+
+    @Override
+    public void onRadioContentLoadFailed() {
+        // TODO: 2016-04-11 Handle this error better
+        stopPlayingRadioStream();
+        sendOutFailedToPlayStreamBroadcast();
+    }
+
+    private Notification buildForegroundNotification(RadioContent radioContent) {
+        NowPlayingTrack currentTrack = radioContent.getCurrentTrack();
+
+        Intent intent = new Intent(getApplicationContext(), RadioPlayerActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        return new Notification.Builder(getApplicationContext())
+                .setContentTitle("Now Playing")
+                .setContentText(currentTrack.getTitle())
+                .setSmallIcon(R.drawable.play)
+                .setContentIntent(pendingIntent)
+                .build();
+    }
 
     public class RadioPlayerBinder extends Binder {
         public RadioPlayerService getService() {
