@@ -4,6 +4,8 @@ import com.jcanseco.radio.api.RadioRestService;
 import com.jcanseco.radio.api.RestClient;
 import com.jcanseco.radio.loaders.RadioContentLoader;
 import com.jcanseco.radio.radioplayer.RadioPlayerPresenter;
+import com.jcanseco.radio.radioplayer.broadcastreceivers.FailedToPlayStreamBroadcastReceiver;
+import com.jcanseco.radio.radioplayer.serviceconnections.RadioPlayerServiceConnection;
 
 public class Injector {
 
@@ -17,5 +19,13 @@ public class Injector {
 
     public static RadioPlayerPresenter provideRadioPlayerPresenter() {
         return new RadioPlayerPresenter(provideRadioContentLoader());
+    }
+
+    public static RadioPlayerServiceConnection provideRadioPlayerServiceConnection(RadioPlayerServiceConnection.ServiceConnectionListener serviceConnectionListener) {
+        return new RadioPlayerServiceConnection(serviceConnectionListener);
+    }
+
+    public static FailedToPlayStreamBroadcastReceiver provideFailedToPlayStreamBroadcastReceiver(FailedToPlayStreamBroadcastReceiver.BroadcastReceivedListener broadcastReceivedListener) {
+        return new FailedToPlayStreamBroadcastReceiver(broadcastReceivedListener);
     }
 }

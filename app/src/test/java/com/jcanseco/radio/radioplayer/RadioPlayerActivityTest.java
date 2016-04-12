@@ -2,9 +2,7 @@ package com.jcanseco.radio.radioplayer;
 
 import android.app.Service;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.view.View;
 import android.widget.Button;
@@ -12,6 +10,7 @@ import android.widget.TextView;
 
 import com.jcanseco.radio.BuildConfig;
 import com.jcanseco.radio.R;
+import com.jcanseco.radio.radioplayer.serviceconnections.RadioPlayerServiceConnection;
 import com.jcanseco.radio.services.RadioPlayerService;
 
 import org.junit.After;
@@ -54,7 +53,7 @@ public class RadioPlayerActivityTest {
         radioPlayerService = mock(RadioPlayerService.class);
         radioPlayerActivity.radioPlayerService = radioPlayerService;
 
-        radioPlayerActivity.radioPlayerServiceConnection = buildMockServiceConnection();
+        radioPlayerActivity.radioPlayerServiceConnection = buildMockRadioPlayerServiceConnection();
     }
 
     @After
@@ -132,16 +131,13 @@ public class RadioPlayerActivityTest {
     }
 
     @Test
-    public void onRadioPlayerServiceConnected_shouldGetServiceFromIBinder() {
+    public void onRadioPlayerServiceConnected_shouldGetService() {
         RadioPlayerActivity radioPlayerActivity = Robolectric.buildActivity(RadioPlayerActivity.class).create().get();
-        radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
 
-        RadioPlayerService.RadioPlayerBinder binder = mock(RadioPlayerService.RadioPlayerBinder.class);
-        when(binder.getService()).thenReturn(radioPlayerService);
-        radioPlayerActivity.radioPlayerServiceConnection.onServiceConnected(mock(ComponentName.class), binder);
+        radioPlayerActivity.onRadioPlayerServiceConnected(radioPlayerService);
 
-        verify(binder).getService();
-        assertThat(radioPlayerActivity.radioPlayerService).isSameAs(binder.getService());
+        assertThat(radioPlayerActivity.radioPlayerService).isNotNull()
+                .isSameAs(radioPlayerService);
     }
 
     @Test
@@ -151,9 +147,7 @@ public class RadioPlayerActivityTest {
         boolean isServiceCurrentlyPlayingStream = true;
         when(radioPlayerService.isPlayingStream()).thenReturn(isServiceCurrentlyPlayingStream);
 
-        RadioPlayerService.RadioPlayerBinder binder = mock(RadioPlayerService.RadioPlayerBinder.class);
-        when(binder.getService()).thenReturn(radioPlayerService);
-        radioPlayerActivity.radioPlayerServiceConnection.onServiceConnected(mock(ComponentName.class), binder);
+        radioPlayerActivity.onRadioPlayerServiceConnected(radioPlayerService);
 
         verify(radioPlayerPresenter).onRadioPlayerServiceConnected(isServiceCurrentlyPlayingStream);
     }
@@ -165,9 +159,7 @@ public class RadioPlayerActivityTest {
         boolean isServiceCurrentlyPlayingStream = false;
         when(radioPlayerService.isPlayingStream()).thenReturn(isServiceCurrentlyPlayingStream);
 
-        RadioPlayerService.RadioPlayerBinder binder = mock(RadioPlayerService.RadioPlayerBinder.class);
-        when(binder.getService()).thenReturn(radioPlayerService);
-        radioPlayerActivity.radioPlayerServiceConnection.onServiceConnected(mock(ComponentName.class), binder);
+        radioPlayerActivity.onRadioPlayerServiceConnected(radioPlayerService);
 
         verify(radioPlayerPresenter).onRadioPlayerServiceConnected(isServiceCurrentlyPlayingStream);
     }
@@ -175,10 +167,9 @@ public class RadioPlayerActivityTest {
     @Test
     public void onRadioPlayerServiceDisconnected_shouldDiscardReferenceToService() {
         RadioPlayerActivity radioPlayerActivity = Robolectric.buildActivity(RadioPlayerActivity.class).create().get();
-        radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
         radioPlayerActivity.radioPlayerService = radioPlayerService;
 
-        radioPlayerActivity.radioPlayerServiceConnection.onServiceDisconnected(mock(ComponentName.class));
+        radioPlayerActivity.onRadioPlayerServiceDisconnected();
 
         assertThat(radioPlayerActivity.radioPlayerService).isNull();
     }
@@ -188,14 +179,14 @@ public class RadioPlayerActivityTest {
         RadioPlayerActivity radioPlayerActivity = Robolectric.buildActivity(RadioPlayerActivity.class).create().get();
         radioPlayerActivity.radioPlayerPresenter = radioPlayerPresenter;
 
-        radioPlayerActivity.radioPlayerServiceConnection.onServiceDisconnected(mock(ComponentName.class));
+        radioPlayerActivity.onRadioPlayerServiceDisconnected();
 
         verify(radioPlayerPresenter).onRadioPlayerServiceDisconnected();
     }
 
     @Test
-    public void onFailedToPlayStreamBroadcastReceived_notifyPresenter() {
-        radioPlayerActivity.failedToPlayStreamBroadcastReceiver.onReceive(mock(Context.class), mock(Intent.class));
+    public void onFailedToPlayStreamBroadcastReceived_shouldNotifyPresenter() {
+        radioPlayerActivity.onFailedToPlayStreamBroadcastReceived();
 
         verify(radioPlayerPresenter).onFailedToPlayStreamBroadcastReceived();
     }
@@ -304,8 +295,8 @@ public class RadioPlayerActivityTest {
         assertToastDisplayed("Error playing stream. Try again later.");
     }
 
-    private ServiceConnection buildMockServiceConnection() {
-        ServiceConnection serviceConnection = mock(ServiceConnection.class);
+    private RadioPlayerServiceConnection buildMockRadioPlayerServiceConnection() {
+        RadioPlayerServiceConnection serviceConnection = mock(RadioPlayerServiceConnection.class);
         doNothing().when(serviceConnection).onServiceConnected(any(ComponentName.class), any(IBinder.class));
         doNothing().when(serviceConnection).onServiceDisconnected(any(ComponentName.class));
         return serviceConnection;

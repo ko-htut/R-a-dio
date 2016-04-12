@@ -1,13 +1,9 @@
 package com.jcanseco.radio.radioplayer;
 
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
@@ -18,20 +14,22 @@ import android.widget.Toast;
 import com.jcanseco.radio.R;
 import com.jcanseco.radio.constants.Constants;
 import com.jcanseco.radio.injectors.Injector;
+import com.jcanseco.radio.radioplayer.broadcastreceivers.FailedToPlayStreamBroadcastReceiver;
+import com.jcanseco.radio.radioplayer.serviceconnections.RadioPlayerServiceConnection;
 import com.jcanseco.radio.services.RadioPlayerService;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class RadioPlayerActivity extends AppCompatActivity implements RadioPlayerPresenter.View {
+public class RadioPlayerActivity extends AppCompatActivity implements RadioPlayerPresenter.View,
+        RadioPlayerServiceConnection.ServiceConnectionListener, FailedToPlayStreamBroadcastReceiver.BroadcastReceivedListener {
 
     RadioPlayerPresenter radioPlayerPresenter;
 
     RadioPlayerService radioPlayerService;
-    ServiceConnection radioPlayerServiceConnection;
-    BroadcastReceiver failedToPlayStreamBroadcastReceiver;
-
+    RadioPlayerServiceConnection radioPlayerServiceConnection;
+    FailedToPlayStreamBroadcastReceiver failedToPlayStreamBroadcastReceiver;
 
     @Bind(R.id.track_title)
     TextView trackTitleView;
@@ -63,8 +61,8 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         radioPlayerPresenter = Injector.provideRadioPlayerPresenter();
         radioPlayerPresenter.attachView(this);
 
-        radioPlayerServiceConnection = initRadioPlayerServiceConnection();
-        failedToPlayStreamBroadcastReceiver = initFailedToPlayStreamBroadcastReceiver();
+        radioPlayerServiceConnection = Injector.provideRadioPlayerServiceConnection(this);
+        failedToPlayStreamBroadcastReceiver = Injector.provideFailedToPlayStreamBroadcastReceiver(this);
     }
 
     @Override
@@ -109,21 +107,16 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         radioPlayerService = null;
     }
 
-    private ServiceConnection initRadioPlayerServiceConnection() {
-        return new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder binder) {
-                RadioPlayerService.RadioPlayerBinder radioPlayerBinder = (RadioPlayerService.RadioPlayerBinder) binder;
-                radioPlayerService = radioPlayerBinder.getService();
-                radioPlayerPresenter.onRadioPlayerServiceConnected(radioPlayerService.isPlayingStream());
-            }
+    @Override
+    public void onRadioPlayerServiceConnected(RadioPlayerService radioPlayerService) {
+        radioPlayerPresenter.onRadioPlayerServiceConnected(radioPlayerService.isPlayingStream());
+        this.radioPlayerService = radioPlayerService;
+    }
 
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                radioPlayerPresenter.onRadioPlayerServiceDisconnected();
-                radioPlayerService = null;
-            }
-        };
+    @Override
+    public void onRadioPlayerServiceDisconnected() {
+        radioPlayerPresenter.onRadioPlayerServiceDisconnected();
+        radioPlayerService = null;
     }
 
     public void registerFailedToPlayStreamBroadcastReceiver() {
@@ -135,13 +128,9 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
         LocalBroadcastManager.getInstance(this).unregisterReceiver(failedToPlayStreamBroadcastReceiver);
     }
 
-    private BroadcastReceiver initFailedToPlayStreamBroadcastReceiver() {
-        return new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                radioPlayerPresenter.onFailedToPlayStreamBroadcastReceived();
-            }
-        };
+    @Override
+    public void onFailedToPlayStreamBroadcastReceived() {
+        radioPlayerPresenter.onFailedToPlayStreamBroadcastReceived();
     }
 
     @OnClick(R.id.action_button)
