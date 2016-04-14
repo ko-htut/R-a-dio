@@ -38,12 +38,17 @@ public class RadioPlayerServiceTest {
     private RadioPlayerService radioPlayerService;
     private ServiceController<RadioPlayerService> serviceController;
 
+    private MediaPlayer mediaPlayer;
+
     @Before
     public void setup() {
         ShadowApplication.getInstance().clearStartedServices();
 
         serviceController = Robolectric.buildService(RadioPlayerService.class);
         radioPlayerService = serviceController.attach().create().get();
+
+        mediaPlayer = mock(MediaPlayer.class);
+        radioPlayerService.mediaPlayer = mediaPlayer;
     }
 
     @Test
@@ -56,25 +61,20 @@ public class RadioPlayerServiceTest {
 
     @Test
     public void whenIsPlayingStreamInvoked_ifMediaPlayerIsPlaying_thenReturnTrue() {
-        radioPlayerService.mediaPlayer = mock(MediaPlayer.class);
-        when(radioPlayerService.mediaPlayer.isPlaying()).thenReturn(true);
+        when(mediaPlayer.isPlaying()).thenReturn(true);
 
         assertThat(radioPlayerService.isPlayingStream()).isTrue();
     }
 
     @Test
     public void whenIsPlayingStreamInvoked_ifMediaPlayerIsNotPlaying_thenReturnFalse() {
-        radioPlayerService.mediaPlayer = mock(MediaPlayer.class);
-        when(radioPlayerService.mediaPlayer.isPlaying()).thenReturn(false);
+        when(mediaPlayer.isPlaying()).thenReturn(false);
 
         assertThat(radioPlayerService.isPlayingStream()).isFalse();
     }
 
     @Test
     public void whenStartPlayingRadioStreamInvoked_mediaPlayerShouldBeSetUpProperly() throws Exception {
-        MediaPlayer mediaPlayer = mock(MediaPlayer.class);
-        radioPlayerService.mediaPlayer = mediaPlayer;
-
         radioPlayerService.startPlayingRadioStream("http://streamurl.com");
 
         verify(mediaPlayer).setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -87,10 +87,7 @@ public class RadioPlayerServiceTest {
 
     @Test
     public void whenStartPlayingRadioStreamInvoked_ifIOExceptionThrown_thenSendOutFailureToPlayStreamBroadcast() throws Exception {
-        MediaPlayer mediaPlayer = mock(MediaPlayer.class);
         doThrow(new IOException()).when(mediaPlayer).setDataSource(anyString());
-        radioPlayerService.mediaPlayer = mediaPlayer;
-
         String expectedBroadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
         BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
 
@@ -101,10 +98,7 @@ public class RadioPlayerServiceTest {
 
     @Test
     public void whenStartPlayingRadioStreamInvoked_ifIllegalStateExceptionThrown_thenSendOutFailureToPlayStreamBroadcast() {
-        MediaPlayer mediaPlayer = mock(MediaPlayer.class);
         doThrow(new IllegalStateException()).when(mediaPlayer).prepareAsync();
-        radioPlayerService.mediaPlayer = mediaPlayer;
-
         String expectedBroadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
         BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
 
@@ -115,9 +109,6 @@ public class RadioPlayerServiceTest {
 
     @Test
     public void whenStopPlayingRadioStreamInvoked_stopAndResetMediaPlayer() {
-        MediaPlayer mediaPlayer = mock(MediaPlayer.class);
-        radioPlayerService.mediaPlayer = mediaPlayer;
-
         radioPlayerService.stopPlayingRadioStream();
 
         verify(mediaPlayer).stop();
@@ -126,9 +117,7 @@ public class RadioPlayerServiceTest {
 
     @Test
     public void whenStopPlayingRadioStreamInvoked_ifIllegalStateExceptionThrown_thenResetMediaPlayerShouldStillBeInvoked() {
-        MediaPlayer mediaPlayer = mock(MediaPlayer.class);
         doThrow(new IllegalStateException()).when(mediaPlayer).stop();
-        radioPlayerService.mediaPlayer = mediaPlayer;
 
         radioPlayerService.stopPlayingRadioStream();
 
@@ -137,9 +126,6 @@ public class RadioPlayerServiceTest {
 
     @Test
     public void onMediaPlayerPrepared_startMediaPlayer() {
-        MediaPlayer mediaPlayer = mock(MediaPlayer.class);
-        radioPlayerService.mediaPlayer = mediaPlayer;
-
         radioPlayerService.onPrepared(mock(MediaPlayer.class));
 
         verify(mediaPlayer).start();
@@ -147,9 +133,6 @@ public class RadioPlayerServiceTest {
 
     @Test
     public void onMediaPlayerError_resetMediaPlayer_andIndicateErrorHandled() {
-        MediaPlayer mediaPlayer = mock(MediaPlayer.class);
-        radioPlayerService.mediaPlayer = mediaPlayer;
-
         int irrelevantInt = 0;
         boolean wasErrorHandled = radioPlayerService.onError(mock(MediaPlayer.class), irrelevantInt, irrelevantInt);
 
