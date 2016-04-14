@@ -39,15 +39,9 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
 
     public void startPlayingRadioStream(String streamUrl) {
         try {
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-            mediaPlayer.setOnPreparedListener(this);
-            mediaPlayer.setOnErrorListener(this);
-            mediaPlayer.setDataSource(streamUrl);
-            mediaPlayer.prepareAsync();
+            prepareMediaPlayerForAsyncStreaming(streamUrl);
         } catch (IOException | IllegalStateException e) {
-            Intent intent = new Intent(Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+            sendOutFailedToPlayStreamBroadcast();
         }
     }
 
@@ -59,6 +53,15 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
         mediaPlayer.reset();
     }
 
+    private void prepareMediaPlayerForAsyncStreaming(String streamUrl) throws IOException, IllegalStateException {
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mediaPlayer.setOnPreparedListener(this);
+        mediaPlayer.setOnErrorListener(this);
+        mediaPlayer.setDataSource(streamUrl);
+        mediaPlayer.prepareAsync();
+    }
+
     @Override
     public void onPrepared(MediaPlayer mp) {
         mediaPlayer.start();
@@ -68,6 +71,11 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
     public boolean onError(MediaPlayer mp, int what, int extra) {
         mediaPlayer.reset();
         return true;
+    }
+
+    private void sendOutFailedToPlayStreamBroadcast() {
+        Intent intent = new Intent(Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM);
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
     }
 
 
