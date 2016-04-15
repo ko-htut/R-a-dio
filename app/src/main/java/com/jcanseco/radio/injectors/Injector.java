@@ -1,11 +1,14 @@
 package com.jcanseco.radio.injectors;
 
+import android.app.Application;
+
 import com.jcanseco.radio.api.RadioRestService;
 import com.jcanseco.radio.api.RestClient;
 import com.jcanseco.radio.loaders.RadioContentLoader;
 import com.jcanseco.radio.radioplayer.RadioPlayerPresenter;
 import com.jcanseco.radio.radioplayer.broadcastreceivers.FailedToPlayStreamBroadcastReceiver;
 import com.jcanseco.radio.radioplayer.serviceconnections.RadioPlayerServiceConnection;
+import com.jcanseco.radio.services.notifications.RadioPlayerNotificationFactory;
 
 public class Injector {
 
@@ -27,5 +30,9 @@ public class Injector {
 
     public static FailedToPlayStreamBroadcastReceiver provideFailedToPlayStreamBroadcastReceiver(FailedToPlayStreamBroadcastReceiver.BroadcastReceivedListener broadcastReceivedListener) {
         return new FailedToPlayStreamBroadcastReceiver(broadcastReceivedListener);
+    }
+
+    public static RadioPlayerNotificationFactory provideRadioPlayerNotificationFactory(RadioPlayerNotificationFactory.Client client, Application applicationContext) {
+        return new RadioPlayerNotificationFactory(client, provideRadioContentLoader(), applicationContext);
     }
 }

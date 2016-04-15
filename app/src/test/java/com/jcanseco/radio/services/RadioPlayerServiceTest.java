@@ -1,5 +1,6 @@
 package com.jcanseco.radio.services;
 
+import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -8,6 +9,7 @@ import android.os.PowerManager;
 
 import com.jcanseco.radio.BuildConfig;
 import com.jcanseco.radio.constants.Constants;
+import com.jcanseco.radio.services.notifications.RadioPlayerNotificationFactory;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +18,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
+import org.robolectric.shadows.ShadowService;
 import org.robolectric.util.ServiceController;
 
 import java.io.IOException;
@@ -30,6 +33,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21, manifest = "src/main/AndroidManifest.xml")
@@ -39,6 +43,7 @@ public class RadioPlayerServiceTest {
     private ServiceController<RadioPlayerService> serviceController;
 
     private MediaPlayer mediaPlayer;
+    private RadioPlayerNotificationFactory notificationFactory;
 
     @Before
     public void setup() {
@@ -49,6 +54,9 @@ public class RadioPlayerServiceTest {
 
         mediaPlayer = mock(MediaPlayer.class);
         radioPlayerService.mediaPlayer = mediaPlayer;
+
+        notificationFactory = mock(RadioPlayerNotificationFactory.class);
+        radioPlayerService.notificationFactory = notificationFactory;
     }
 
     @Test
@@ -83,6 +91,13 @@ public class RadioPlayerServiceTest {
         verify(mediaPlayer).setOnErrorListener(any(MediaPlayer.OnErrorListener.class));
         verify(mediaPlayer).setDataSource("http://streamurl.com");
         verify(mediaPlayer).prepareAsync();
+    }
+
+    @Test
+    public void whenStartPlayingRadioStreamInvoked_startScheduledCreationOfPlayerNotifications() {
+        radioPlayerService.startPlayingRadioStream("http://streamurl.com");
+
+        verify(notificationFactory).startScheduledCreationOfPlayerNotifications();
     }
 
     @Test
@@ -125,6 +140,22 @@ public class RadioPlayerServiceTest {
     }
 
     @Test
+    public void whenStopPlayingRadioStreamInvoked_stopScheduledCreationOfPlayerNotifications() {
+        radioPlayerService.stopPlayingRadioStream();
+
+        verify(notificationFactory).stopScheduledCreationOfPlayerNotifications();
+    }
+
+    @Test
+    public void whenStopPlayingRadioStreamInvoked_ifIllegalStateExceptionThrown_thenStopScheduledCreationOfPlayerNotificationsShouldStillBeInvoked() {
+        doThrow(new IllegalStateException()).when(mediaPlayer).stop();
+
+        radioPlayerService.stopPlayingRadioStream();
+
+        verify(notificationFactory).stopScheduledCreationOfPlayerNotifications();
+    }
+
+    @Test
     public void onMediaPlayerPrepared_startMediaPlayer() {
         radioPlayerService.onPrepared(mock(MediaPlayer.class));
 
@@ -132,11 +163,71 @@ public class RadioPlayerServiceTest {
     }
 
     @Test
-    public void onMediaPlayerError_resetMediaPlayer_andIndicateErrorHandled() {
+    public void onMediaPlayerError_sendOutFailedToPlayStreamBroadcast() {
+        String expectedBroadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
+        BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
+
+        int irrelevantInt = 0;
+        radioPlayerService.onError(mock(MediaPlayer.class), irrelevantInt, irrelevantInt);
+
+        verifyThatReceiverReceivedExpectedBroadcast(receiver, expectedBroadcastIntentAction);
+    }
+
+    @Test
+    public void onMediaPlayerError_resetMediaPlayer() {
+        int irrelevantInt = 0;
+        radioPlayerService.onError(mock(MediaPlayer.class), irrelevantInt, irrelevantInt);
+
+        verify(mediaPlayer).reset();
+    }
+
+    @Test
+    public void onMediaPlayerError_stopScheduledCreationOfPlayerNotifications() {
+        int irrelevantInt = 0;
+        radioPlayerService.onError(mock(MediaPlayer.class), irrelevantInt, irrelevantInt);
+
+        verify(notificationFactory).stopScheduledCreationOfPlayerNotifications();
+    }
+
+    @Test
+    public void onMediaPlayerError_indicateErrorHandled() {
         int irrelevantInt = 0;
         boolean wasErrorHandled = radioPlayerService.onError(mock(MediaPlayer.class), irrelevantInt, irrelevantInt);
 
-        verify(mediaPlayer).reset();
         assertTrue(wasErrorHandled);
+    }
+
+    @Test
+    public void onPlayerNotificationCreationSuccess_startServiceAsForegroundServiceWithTheGivenNotification() {
+        ShadowService shadowService = shadowOf(radioPlayerService);
+        Notification notification = mock(Notification.class);
+
+        radioPlayerService.onPlayerNotificationCreationSuccess(notification);
+
+        assertThat(shadowService.getLastForegroundNotification()).isSameAs(notification);
+    }
+
+    @Test
+    public void onPlayerNotificationCreationFailed_sendOutFailureToPlayStreamBroadcast() {
+        String expectedBroadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
+        BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
+
+        radioPlayerService.onPlayerNotificationCreationFailed();
+
+        verifyThatReceiverReceivedExpectedBroadcast(receiver, expectedBroadcastIntentAction);
+    }
+
+    @Test
+    public void onPlayerNotificationCreationFailed_resetMediaPlayer() {
+        radioPlayerService.onPlayerNotificationCreationFailed();
+
+        verify(mediaPlayer).reset();
+    }
+
+    @Test
+    public void onPlayerNotificationCreationFailed_stopScheduledCreationOfPlayerNotifications() {
+        radioPlayerService.onPlayerNotificationCreationFailed();
+
+        verify(notificationFactory).stopScheduledCreationOfPlayerNotifications();
     }
 }

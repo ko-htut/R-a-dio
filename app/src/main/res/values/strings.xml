@@ -3,4 +3,5 @@
     <string name="num_of_listeners">%1$s Listeners</string>
     <string name="failed_to_load_content">Failed to load. Try again later.</string>
     <string name="failed_to_load_stream">Error playing stream. Try again later.</string>
+    <string name="radio_player_notification_content_title">Now Playing</string>
 </resources>

@@ -1,5 +1,7 @@
 package com.jcanseco.radio.services;
 
+import android.app.Application;
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -11,12 +13,18 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.jcanseco.radio.constants.Constants;
+import com.jcanseco.radio.injectors.Injector;
+import com.jcanseco.radio.services.notifications.RadioPlayerNotificationFactory;
 
 import java.io.IOException;
 
-public class RadioPlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
+public class RadioPlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, RadioPlayerNotificationFactory.Client {
 
     MediaPlayer mediaPlayer;
+
+    RadioPlayerNotificationFactory notificationFactory;
+
+    private static final int NOTIFICATION_ID = 1;
 
     private final IBinder radioPlayerBinder = new RadioPlayerBinder();
 
@@ -25,6 +33,8 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
         super.onCreate();
 
         mediaPlayer = new MediaPlayer();
+
+        notificationFactory = Injector.provideRadioPlayerNotificationFactory(this, (Application) getApplicationContext());
     }
 
     @Nullable
@@ -40,17 +50,10 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
     public void startPlayingRadioStream(String streamUrl) {
         try {
             prepareMediaPlayerForAsyncStreaming(streamUrl);
+            notificationFactory.startScheduledCreationOfPlayerNotifications();
         } catch (IOException | IllegalStateException e) {
             sendOutFailedToPlayStreamBroadcast();
         }
-    }
-
-    public void stopPlayingRadioStream() {
-        try {
-            mediaPlayer.stop();
-        } catch (IllegalStateException e) {}
-
-        mediaPlayer.reset();
     }
 
     private void prepareMediaPlayerForAsyncStreaming(String streamUrl) throws IOException, IllegalStateException {
@@ -62,6 +65,16 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
         mediaPlayer.prepareAsync();
     }
 
+    public void stopPlayingRadioStream() {
+        try {
+            mediaPlayer.stop();
+        } catch (IllegalStateException e) {}
+
+        mediaPlayer.reset();
+        notificationFactory.stopScheduledCreationOfPlayerNotifications();
+        stopForeground(false);
+    }
+
     @Override
     public void onPrepared(MediaPlayer mp) {
         mediaPlayer.start();
@@ -69,8 +82,23 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        mediaPlayer.reset();
+        onFailureDuringStream();
         return true;
+    }
+
+    @Override
+    public void onPlayerNotificationCreationSuccess(Notification notification) {
+        startForeground(NOTIFICATION_ID, notification);
+    }
+
+    @Override
+    public void onPlayerNotificationCreationFailed() {
+        onFailureDuringStream();
+    }
+
+    private void onFailureDuringStream() {
+        stopPlayingRadioStream();
+        sendOutFailedToPlayStreamBroadcast();
     }
 
     private void sendOutFailedToPlayStreamBroadcast() {
