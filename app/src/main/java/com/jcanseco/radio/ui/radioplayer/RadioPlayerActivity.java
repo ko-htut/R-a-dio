@@ -1,4 +1,4 @@
-package com.jcanseco.radio.radioplayer;
+package com.jcanseco.radio.ui.radioplayer;
 
 import android.content.Context;
 import android.content.Intent;
@@ -14,8 +14,8 @@ import android.widget.Toast;
 import com.jcanseco.radio.R;
 import com.jcanseco.radio.constants.Constants;
 import com.jcanseco.radio.injectors.Injector;
-import com.jcanseco.radio.radioplayer.broadcastreceivers.FailedToPlayStreamBroadcastReceiver;
-import com.jcanseco.radio.radioplayer.serviceconnections.RadioPlayerServiceConnection;
+import com.jcanseco.radio.ui.radioplayer.broadcastreceivers.FailedToPlayStreamBroadcastReceiver;
+import com.jcanseco.radio.ui.radioplayer.serviceconnections.RadioPlayerServiceConnection;
 import com.jcanseco.radio.services.RadioPlayerService;
 
 import butterknife.Bind;

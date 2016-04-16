@@ -1,4 +1,4 @@
-package com.jcanseco.radio.radioplayer.broadcastreceivers;
+package com.jcanseco.radio.ui.radioplayer.broadcastreceivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

@@ -1,4 +1,4 @@
-package com.jcanseco.radio.radioplayer;
+package com.jcanseco.radio.ui.radioplayer;
 
 import com.jcanseco.radio.loaders.RadioContentLoader;
 import com.jcanseco.radio.models.Dj;

@@ -1,4 +1,4 @@
-package com.jcanseco.radio.radioplayer;
+package com.jcanseco.radio.ui.radioplayer;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import com.jcanseco.radio.BuildConfig;
 import com.jcanseco.radio.R;
-import com.jcanseco.radio.radioplayer.serviceconnections.RadioPlayerServiceConnection;
+import com.jcanseco.radio.ui.radioplayer.serviceconnections.RadioPlayerServiceConnection;
 import com.jcanseco.radio.services.RadioPlayerService;
 
 import org.junit.After;

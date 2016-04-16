@@ -1,4 +1,4 @@
-package com.jcanseco.radio.radioplayer.serviceconnections;
+package com.jcanseco.radio.ui.radioplayer.serviceconnections;
 
 import android.content.ComponentName;
 
