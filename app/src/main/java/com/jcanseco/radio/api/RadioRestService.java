@@ -1,5 +1,6 @@
 package com.jcanseco.radio.api;
 
+import com.jcanseco.radio.constants.Constants;
 import com.jcanseco.radio.models.RadioContent;
 
 import retrofit2.Call;
@@ -16,7 +17,7 @@ public interface RadioRestService {
     class Factory {
         public static RadioRestService create() {
             Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("https://r-a-d.io")
+                    .baseUrl(Constants.Endpoints.BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
             return retrofit.create(RadioRestService.class);

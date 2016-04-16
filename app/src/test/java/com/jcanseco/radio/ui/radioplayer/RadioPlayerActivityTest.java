@@ -263,9 +263,9 @@ public class RadioPlayerActivityTest {
     public void whenStartPlayingRadioStreamInvoked_invokeStartPlayingRadioStreamOnService() {
         activityController.start().resume().visible();
 
-        radioPlayerActivity.startPlayingRadioStream("http://streamurl.com");
+        radioPlayerActivity.startPlayingRadioStream();
 
-        verify(radioPlayerService).startPlayingRadioStream("http://streamurl.com");
+        verify(radioPlayerService).startPlayingRadioStream();
     }
 
     @Test

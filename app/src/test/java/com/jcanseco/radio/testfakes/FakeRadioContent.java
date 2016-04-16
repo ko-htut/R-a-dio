@@ -100,9 +100,4 @@ public class FakeRadioContent extends RadioContent {
     public String getDiscussionThreadUrl() {
         return "https://discussionthreadurl.com";
     }
-
-    @Override
-    public String getStreamUrl() {
-        return "https://streamurl.com";
-    }
 }

@@ -37,9 +37,9 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
         return mediaPlayer.isPlaying();
     }
 
-    public void startPlayingRadioStream(String streamUrl) {
+    public void startPlayingRadioStream() {
         try {
-            prepareMediaPlayerForAsyncStreaming(streamUrl);
+            prepareMediaPlayerForAsyncStreaming();
         } catch (IOException | IllegalStateException e) {
             sendOutFailedToPlayStreamBroadcast();
         }
@@ -53,12 +53,14 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
         mediaPlayer.reset();
     }
 
-    private void prepareMediaPlayerForAsyncStreaming(String streamUrl) throws IOException, IllegalStateException {
+    private void prepareMediaPlayerForAsyncStreaming() throws IOException, IllegalStateException {
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+
         mediaPlayer.setOnPreparedListener(this);
         mediaPlayer.setOnErrorListener(this);
-        mediaPlayer.setDataSource(streamUrl);
+
+        mediaPlayer.setDataSource(Constants.Endpoints.STREAM_URL);
         mediaPlayer.prepareAsync();
     }
 

@@ -91,11 +91,6 @@ public class RadioContentTest {
         assertThat(radioContent.getDiscussionThreadUrl()).isEqualTo("http://discussionthread.com");
     }
 
-    @Test
-    public void testGetStreamUrl() {
-        assertThat(radioContent.getStreamUrl()).isEqualTo("https://stream.r-a-d.io/main.mp3");
-    }
-
     private void assertEqualTracks(Track expectedTrack, Track actualTrack) {
         assertEquals(expectedTrack.getTitle(), actualTrack.getTitle());
     }

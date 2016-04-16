@@ -11,8 +11,6 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
     private RadioContentLoader radioContentLoader;
 
     private boolean isPlayerPlaying;
-    private String radioStreamUrl;
-
     private boolean isRadioPlayerServiceConnected;
 
     public RadioPlayerPresenter(RadioContentLoader radioContentLoader) {
@@ -44,12 +42,12 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
     }
 
     public void onRadioPlayerServiceConnected(boolean isServiceCurrentlyPlayingStream) {
+        isRadioPlayerServiceConnected = true;
         if (isServiceCurrentlyPlayingStream) {
             setPlayerStateAsPlaying();
         } else {
             setPlayerStateAsPaused();
         }
-        isRadioPlayerServiceConnected = true;
     }
 
     public void onRadioPlayerServiceDisconnected() {
@@ -77,13 +75,10 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
     protected void playPlayer() {
         if (isRadioPlayerServiceConnected()) {
-            String streamUrl = getStreamUrl();
-            if (streamUrl != null) {
-                radioPlayerView.startPlayingRadioStream(streamUrl);
-                setPlayerStateAsPlaying();
-            } else {
-                radioPlayerView.showCouldNotPlayRadioStreamErrorMessage();
-            }
+            radioPlayerView.startPlayingRadioStream();
+            setPlayerStateAsPlaying();
+        } else {
+            radioPlayerView.showCouldNotPlayRadioStreamErrorMessage();
         }
     }
 
@@ -95,8 +90,6 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
         radioPlayerView.showCurrentTrackTitle(currentTrack.getTitle());
         radioPlayerView.showCurrentDjName(currentDj.getName());
         radioPlayerView.showNumOfListeners(radioContent.getNumOfListeners());
-
-        setRadioStreamUrl(radioContent.getStreamUrl());
     }
 
     @Override
@@ -112,14 +105,6 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
     protected boolean isRadioPlayerServiceConnected() {
         return isRadioPlayerServiceConnected;
-    }
-
-    protected String getStreamUrl() {
-        return radioStreamUrl;
-    }
-
-    protected void setRadioStreamUrl(String radioStreamUrl) {
-        this.radioStreamUrl = radioStreamUrl;
     }
 
     private void setPlayerStateAsPaused() {
@@ -155,7 +140,7 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
 
         void showNumOfListeners(int numOfListeners);
 
-        void startPlayingRadioStream(String streamUrl);
+        void startPlayingRadioStream();
 
         void stopPlayingRadioStream();
 

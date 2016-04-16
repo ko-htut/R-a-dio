@@ -9,9 +9,6 @@ public class RadioContent {
     @SerializedName("main")
     private RadioContentMain radioContentMain;
 
-    @SerializedName("meta")
-    private RadioContentMeta radioContentMeta;
-
 
     public NowPlayingTrack getCurrentTrack() {
         return radioContentMain.getCurrentTrack();
@@ -35,9 +32,5 @@ public class RadioContent {
 
     public String getDiscussionThreadUrl() {
         return radioContentMain.getDiscussionThreadUrl();
-    }
-
-    public String getStreamUrl() {
-        return radioContentMeta.getStreamUrl();
     }
 }

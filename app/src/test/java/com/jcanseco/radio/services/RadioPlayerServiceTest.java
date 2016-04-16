@@ -75,13 +75,13 @@ public class RadioPlayerServiceTest {
 
     @Test
     public void whenStartPlayingRadioStreamInvoked_mediaPlayerShouldBeSetUpProperly() throws Exception {
-        radioPlayerService.startPlayingRadioStream("http://streamurl.com");
+        radioPlayerService.startPlayingRadioStream();
 
         verify(mediaPlayer).setAudioStreamType(AudioManager.STREAM_MUSIC);
         verify(mediaPlayer).setWakeMode(ShadowApplication.getInstance().getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         verify(mediaPlayer).setOnPreparedListener(any(MediaPlayer.OnPreparedListener.class));
         verify(mediaPlayer).setOnErrorListener(any(MediaPlayer.OnErrorListener.class));
-        verify(mediaPlayer).setDataSource("http://streamurl.com");
+        verify(mediaPlayer).setDataSource(Constants.Endpoints.STREAM_URL);
         verify(mediaPlayer).prepareAsync();
     }
 
@@ -91,7 +91,7 @@ public class RadioPlayerServiceTest {
         String expectedBroadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
         BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
 
-        radioPlayerService.startPlayingRadioStream("http://streamurl.com");
+        radioPlayerService.startPlayingRadioStream();
 
         verifyThatReceiverReceivedExpectedBroadcast(receiver, expectedBroadcastIntentAction);
     }
@@ -102,7 +102,7 @@ public class RadioPlayerServiceTest {
         String expectedBroadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
         BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
 
-        radioPlayerService.startPlayingRadioStream("http://streamurl.com");
+        radioPlayerService.startPlayingRadioStream();
 
         verifyThatReceiverReceivedExpectedBroadcast(receiver, expectedBroadcastIntentAction);
     }

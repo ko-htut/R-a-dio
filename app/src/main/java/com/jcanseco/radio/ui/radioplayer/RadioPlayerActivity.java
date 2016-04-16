@@ -170,8 +170,8 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
     }
 
     @Override
-    public void startPlayingRadioStream(String streamUrl) {
-        radioPlayerService.startPlayingRadioStream(streamUrl);
+    public void startPlayingRadioStream() {
+        radioPlayerService.startPlayingRadioStream();
     }
 
     @Override
