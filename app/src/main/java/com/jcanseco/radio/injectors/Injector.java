@@ -1,6 +1,6 @@
 package com.jcanseco.radio.injectors;
 
-import android.content.Context;
+import android.app.Application;
 
 import com.jcanseco.radio.api.RadioRestService;
 import com.jcanseco.radio.api.RestClient;
@@ -32,7 +32,7 @@ public class Injector {
         return new FailedToPlayStreamBroadcastReceiver(broadcastReceivedListener);
     }
 
-    public static RadioPlayer provideRadioPlayer(Context context) {
-        return RadioPlayer.Factory.create(context);
+    public static RadioPlayer provideRadioPlayer(Application application) {
+        return RadioPlayer.Factory.create(application);
     }
 }

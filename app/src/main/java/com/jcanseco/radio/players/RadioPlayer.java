@@ -1,5 +1,6 @@
 package com.jcanseco.radio.players;
 
+import android.app.Application;
 import android.content.Context;
 import android.net.Uri;
 
@@ -28,17 +29,18 @@ public class RadioPlayer implements ExoPlayer.Listener {
     private Listener radioPlayerListener;
 
     private ExoPlayer exoPlayer;
-    private MediaCodecAudioTrackRenderer audioRenderer;
     private boolean isPlaying;
 
     private Timer timer;
     private boolean isCurrentlyCountingDownForBufferTimeout;
 
-    public RadioPlayer(ExoPlayer exoPlayer, MediaCodecAudioTrackRenderer audioRenderer) {
+    private final Context applicationContext;
+
+    public RadioPlayer(ExoPlayer exoPlayer, Application application) {
         this.exoPlayer = exoPlayer;
         this.exoPlayer.addListener(this);
 
-        this.audioRenderer = audioRenderer;
+        this.applicationContext = application;
     }
 
     public void setRadioPlayerListener(Listener radioPlayerListener) {
@@ -51,10 +53,18 @@ public class RadioPlayer implements ExoPlayer.Listener {
 
     public void play() {
         if (!isExoPlayerPreparedForPlayback()) {
-            exoPlayer.prepare(audioRenderer); // we probably need to build a new audioRenderer each time?
+            prepareExoPlayerForPlayback();
         }
         exoPlayer.setPlayWhenReady(true);
         isPlaying = true;
+    }
+
+    private void prepareExoPlayerForPlayback() {
+        exoPlayer.prepare(buildAudioRenderer());
+    }
+
+    protected MediaCodecAudioTrackRenderer buildAudioRenderer() {
+        return Factory.createAudioRenderer(applicationContext);
     }
 
     public void pause() {
@@ -149,18 +159,17 @@ public class RadioPlayer implements ExoPlayer.Listener {
         private static final int NUM_OF_SEGMENTS_TO_BUFFER = 64;
         private static final int REQUESTED_BUFFER_SIZE = NUM_OF_SEGMENTS_TO_BUFFER * BUFFER_SEGMENT_SIZE_IN_BYTES;
 
-        public static RadioPlayer create(Context context) {
+        public static RadioPlayer create(Application application) {
             ExoPlayer exoPlayer = ExoPlayer.Factory.newInstance(RENDERER_COUNT, MIN_BUFFER_IN_MILLIS, MIN_REBUFFER_IN_MILLIS);
-            MediaCodecAudioTrackRenderer audioRenderer = buildAudioRenderer(context);
-            return new RadioPlayer(exoPlayer, audioRenderer);
+            return new RadioPlayer(exoPlayer, application);
         }
 
-        private static MediaCodecAudioTrackRenderer buildAudioRenderer(Context context) {
-            SampleSource sampleSource = buildSampleSource(context);
+        public static MediaCodecAudioTrackRenderer createAudioRenderer(Context context) {
+            SampleSource sampleSource = createSampleSource(context);
             return new MediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT);
         }
 
-        private static SampleSource buildSampleSource(Context context) {
+        private static SampleSource createSampleSource(Context context) {
             Uri streamUri = Uri.parse(Constants.Endpoints.STREAM_URL);
             DataSource dataSource = new DefaultUriDataSource(context, null, getUserAgent(context));
             Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE_IN_BYTES);

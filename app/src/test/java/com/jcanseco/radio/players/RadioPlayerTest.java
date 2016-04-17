@@ -1,5 +1,7 @@
 package com.jcanseco.radio.players;
 
+import android.app.Application;
+
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
@@ -26,7 +28,6 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RadioPlayerTest {
@@ -37,21 +38,26 @@ public class RadioPlayerTest {
     ExoPlayer exoPlayer;
 
     @Mock
-    MediaCodecAudioTrackRenderer audioRenderer;
+    RadioPlayer.Listener radioPlayerListener;
 
     @Mock
-    RadioPlayer.Listener radioPlayerListener;
+    Application application;
+
+    @Mock
+    MediaCodecAudioTrackRenderer audioRenderer;
 
     @Mock
     Timer timer;
 
     @Before
     public void setup() {
-        radioPlayer = spy(new RadioPlayer(exoPlayer, audioRenderer));
+        radioPlayer = spy(new RadioPlayer(exoPlayer, application));
         radioPlayer.setRadioPlayerListener(radioPlayerListener);
 
-        when(radioPlayer.initNewTimer()).thenReturn(timer);
-        when(radioPlayer.getTimer()).thenReturn(timer);
+        doReturn(audioRenderer).when(radioPlayer).buildAudioRenderer();
+
+        doReturn(timer).when(radioPlayer).initNewTimer();
+        doReturn(timer).when(radioPlayer).getTimer();
         doNothing().when(timer).schedule(any(TimerTask.class), anyLong());
     }
 
@@ -85,6 +91,15 @@ public class RadioPlayerTest {
         radioPlayer.play();
 
         verify(exoPlayer).prepare(audioRenderer);
+    }
+
+    @Test
+    public void testThatNewAudioRendererIsBuilt_wheneverExoPlayerIsPreparedForPlayback() {
+        doReturn(false).when(radioPlayer).isExoPlayerPreparedForPlayback();
+
+        radioPlayer.play();
+
+        verify(radioPlayer).buildAudioRenderer();
     }
 
     @Test

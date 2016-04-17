@@ -1,5 +1,6 @@
 package com.jcanseco.radio.services;
 
+import android.app.Application;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -21,7 +22,7 @@ public class RadioPlayerService extends Service implements RadioPlayer.Listener 
     public void onCreate() {
         super.onCreate();
 
-        radioPlayer = Injector.provideRadioPlayer(getApplicationContext());
+        radioPlayer = Injector.provideRadioPlayer((Application) getApplicationContext());
         radioPlayer.setRadioPlayerListener(this);
     }
 
