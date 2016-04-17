@@ -2,21 +2,18 @@ package com.jcanseco.radio.services;
 
 import android.app.Service;
 import android.content.Intent;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
-import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.jcanseco.radio.constants.Constants;
+import com.jcanseco.radio.injectors.Injector;
+import com.jcanseco.radio.players.RadioPlayer;
 
-import java.io.IOException;
+public class RadioPlayerService extends Service implements RadioPlayer.Listener {
 
-public class RadioPlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
-
-    MediaPlayer mediaPlayer;
+    RadioPlayer radioPlayer;
 
     private final IBinder radioPlayerBinder = new RadioPlayerBinder();
 
@@ -24,7 +21,8 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
     public void onCreate() {
         super.onCreate();
 
-        mediaPlayer = new MediaPlayer();
+        radioPlayer = Injector.provideRadioPlayer(getApplicationContext());
+        radioPlayer.setRadioPlayerListener(this);
     }
 
     @Nullable
@@ -33,46 +31,26 @@ public class RadioPlayerService extends Service implements MediaPlayer.OnPrepare
         return radioPlayerBinder;
     }
 
+    @Override
+    public void onDestroy() {
+        radioPlayer.release();
+    }
+
     public boolean isPlayingStream() {
-        return mediaPlayer.isPlaying();
+        return radioPlayer.isPlaying();
     }
 
     public void startPlayingRadioStream() {
-        try {
-            prepareMediaPlayerForAsyncStreaming();
-        } catch (IOException | IllegalStateException e) {
-            sendOutFailedToPlayStreamBroadcast();
-        }
+        radioPlayer.play();
     }
 
     public void stopPlayingRadioStream() {
-        try {
-            mediaPlayer.stop();
-        } catch (IllegalStateException e) {}
-
-        mediaPlayer.reset();
-    }
-
-    private void prepareMediaPlayerForAsyncStreaming() throws IOException, IllegalStateException {
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-
-        mediaPlayer.setOnPreparedListener(this);
-        mediaPlayer.setOnErrorListener(this);
-
-        mediaPlayer.setDataSource(Constants.Endpoints.STREAM_URL);
-        mediaPlayer.prepareAsync();
+        radioPlayer.pause();
     }
 
     @Override
-    public void onPrepared(MediaPlayer mp) {
-        mediaPlayer.start();
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        mediaPlayer.reset();
-        return true;
+    public void onRadioPlayerStreamError() {
+        sendOutFailedToPlayStreamBroadcast();
     }
 
     private void sendOutFailedToPlayStreamBroadcast() {
