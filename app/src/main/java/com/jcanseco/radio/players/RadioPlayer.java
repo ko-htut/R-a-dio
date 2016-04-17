@@ -22,11 +22,11 @@ import com.jcanseco.radio.tasks.RadioPlayerBufferTimeoutTimerTask;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class RadioPlayer implements ExoPlayer.Listener {
+public class RadioPlayer implements Player, ExoPlayer.Listener {
 
     private static final long BUFFER_TIMEOUT_IN_MILLIS = 10000;
 
-    private Listener radioPlayerListener;
+    private Player.Listener playerListener;
 
     private ExoPlayer exoPlayer;
     private boolean isPlaying;
@@ -43,14 +43,17 @@ public class RadioPlayer implements ExoPlayer.Listener {
         this.applicationContext = application;
     }
 
-    public void setRadioPlayerListener(Listener radioPlayerListener) {
-        this.radioPlayerListener = radioPlayerListener;
+    @Override
+    public void setPlayerListener(Player.Listener playerListener) {
+        this.playerListener = playerListener;
     }
 
+    @Override
     public boolean isPlaying() {
         return isPlaying;
     }
 
+    @Override
     public void play() {
         if (!isExoPlayerPreparedForPlayback()) {
             prepareExoPlayerForPlayback();
@@ -67,11 +70,13 @@ public class RadioPlayer implements ExoPlayer.Listener {
         return Factory.createAudioRenderer(applicationContext);
     }
 
+    @Override
     public void pause() {
         exoPlayer.setPlayWhenReady(false);
         isPlaying = false;
     }
 
+    @Override
     public void release() {
         exoPlayer.release();
         isPlaying = false;
@@ -118,7 +123,7 @@ public class RadioPlayer implements ExoPlayer.Listener {
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-        radioPlayerListener.onRadioPlayerStreamError();
+        playerListener.onPlayerStreamError();
         exoPlayer.stop();
         isPlaying = false;
     }
@@ -140,12 +145,6 @@ public class RadioPlayer implements ExoPlayer.Listener {
 
     protected Timer getTimer() {
         return timer;
-    }
-
-
-    public interface Listener {
-
-        void onRadioPlayerStreamError();
     }
 
 

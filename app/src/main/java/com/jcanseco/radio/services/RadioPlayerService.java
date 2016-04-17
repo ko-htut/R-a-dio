@@ -10,11 +10,11 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import com.jcanseco.radio.constants.Constants;
 import com.jcanseco.radio.injectors.Injector;
-import com.jcanseco.radio.players.RadioPlayer;
+import com.jcanseco.radio.players.Player;
 
-public class RadioPlayerService extends Service implements RadioPlayer.Listener {
+public class RadioPlayerService extends Service implements Player.Listener {
 
-    RadioPlayer radioPlayer;
+    Player player;
 
     private final IBinder radioPlayerBinder = new RadioPlayerBinder();
 
@@ -22,8 +22,8 @@ public class RadioPlayerService extends Service implements RadioPlayer.Listener 
     public void onCreate() {
         super.onCreate();
 
-        radioPlayer = Injector.provideRadioPlayer((Application) getApplicationContext());
-        radioPlayer.setRadioPlayerListener(this);
+        player = Injector.providePlayer((Application) getApplicationContext());
+        player.setPlayerListener(this);
     }
 
     @Nullable
@@ -34,23 +34,23 @@ public class RadioPlayerService extends Service implements RadioPlayer.Listener 
 
     @Override
     public void onDestroy() {
-        radioPlayer.release();
+        player.release();
     }
 
     public boolean isPlayingStream() {
-        return radioPlayer.isPlaying();
+        return player.isPlaying();
     }
 
     public void startPlayingRadioStream() {
-        radioPlayer.play();
+        player.play();
     }
 
     public void stopPlayingRadioStream() {
-        radioPlayer.pause();
+        player.pause();
     }
 
     @Override
-    public void onRadioPlayerStreamError() {
+    public void onPlayerStreamError() {
         sendOutFailedToPlayStreamBroadcast();
     }
 

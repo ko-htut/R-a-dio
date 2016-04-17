@@ -5,7 +5,7 @@ import android.content.Intent;
 
 import com.jcanseco.radio.BuildConfig;
 import com.jcanseco.radio.constants.Constants;
-import com.jcanseco.radio.players.RadioPlayer;
+import com.jcanseco.radio.players.Player;
 
 import org.junit.After;
 import org.junit.Before;
@@ -31,7 +31,7 @@ public class RadioPlayerServiceTest {
     private RadioPlayerService radioPlayerService;
     private ServiceController<RadioPlayerService> serviceController;
 
-    private RadioPlayer radioPlayer;
+    private Player player;
 
     @Before
     public void setup() {
@@ -40,9 +40,9 @@ public class RadioPlayerServiceTest {
         serviceController = Robolectric.buildService(RadioPlayerService.class);
         radioPlayerService = serviceController.attach().create().get();
 
-        radioPlayer = mock(RadioPlayer.class);
-        radioPlayer.setRadioPlayerListener(radioPlayerService);
-        radioPlayerService.radioPlayer = radioPlayer;
+        player = mock(Player.class);
+        player.setPlayerListener(radioPlayerService);
+        radioPlayerService.player = player;
     }
 
     @After
@@ -62,19 +62,19 @@ public class RadioPlayerServiceTest {
     public void onDestroy_shouldReleaseRadioPlayer() {
         serviceController.destroy();
 
-        verify(radioPlayer).release();
+        verify(player).release();
     }
 
     @Test
     public void whenIsPlayingStreamInvoked_ifRadioPlayerIsPlaying_thenReturnTrue() {
-        when(radioPlayer.isPlaying()).thenReturn(true);
+        when(player.isPlaying()).thenReturn(true);
 
         assertThat(radioPlayerService.isPlayingStream()).isTrue();
     }
 
     @Test
     public void whenIsPlayingStreamInvoked_ifRadioPlayerIsNotPlaying_thenReturnFalse() {
-        when(radioPlayer.isPlaying()).thenReturn(false);
+        when(player.isPlaying()).thenReturn(false);
 
         assertThat(radioPlayerService.isPlayingStream()).isFalse();
     }
@@ -83,22 +83,22 @@ public class RadioPlayerServiceTest {
     public void whenStartPlayingRadioStreamInvoked_playRadioPlayer() throws Exception {
         radioPlayerService.startPlayingRadioStream();
 
-        verify(radioPlayer).play();
+        verify(player).play();
     }
 
     @Test
     public void whenStopPlayingRadioStreamInvoked_pauseRadioPlayer() {
         radioPlayerService.stopPlayingRadioStream();
 
-        verify(radioPlayer).pause();
+        verify(player).pause();
     }
 
     @Test
-    public void onRadioPlayerStreamError_shouldSendOutFailureToPlayStreamBroadcast() throws Exception {
+    public void onPlayerStreamError_shouldSendOutFailureToPlayStreamBroadcast() throws Exception {
         String expectedBroadcastIntentAction = Constants.Actions.FAILED_TO_PLAY_RADIO_STREAM;
         BroadcastReceiver receiver = buildMockLocalBroadcastReceiver(expectedBroadcastIntentAction);
 
-        radioPlayerService.onRadioPlayerStreamError();
+        radioPlayerService.onPlayerStreamError();
 
         verifyThatReceiverReceivedExpectedBroadcast(receiver, expectedBroadcastIntentAction);
     }
