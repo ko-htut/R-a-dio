@@ -7,6 +7,7 @@ import com.jcanseco.radio.models.RadioContent;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -28,6 +29,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -107,10 +109,12 @@ public class RadioContentLoaderTest {
     }
 
     @Test
-    public void whenStopActiveLoadingOfContentInvoked_shouldCancelTimer() {
+    public void whenStopActiveLoadingOfContentInvoked_shouldCancelAndPurgeTimer() {
         radioContentLoader.stopActiveLoadingOfContent();
 
-        verify(timer).cancel();
+        InOrder inOrder = inOrder(timer);
+        inOrder.verify(timer).cancel();
+        inOrder.verify(timer).purge();
     }
 
     @Test

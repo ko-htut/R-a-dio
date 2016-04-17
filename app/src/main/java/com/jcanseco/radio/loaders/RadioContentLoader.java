@@ -41,6 +41,7 @@ public class RadioContentLoader {
     public void stopActiveLoadingOfContent() {
         isSetupForActiveLoading = false;
         getTimer().cancel();
+        getTimer().purge();
     }
 
     public void loadContent() {
