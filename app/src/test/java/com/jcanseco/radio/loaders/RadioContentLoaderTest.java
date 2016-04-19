@@ -8,18 +8,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
-import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
@@ -27,7 +23,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -125,90 +120,53 @@ public class RadioContentLoaderTest {
     }
 
     @Test
-    public void whenLoadContentInvoked_ifNetworkResponseSuccess_andLoaderSetupForScheduledLoading_thenScheduleNextLoadTaskForWhenTheCurrentTrackEndsPlus1Sec() {
-        Answer networkResponseSuccess = getAnswerForNetworkResponseSuccess();
-        doAnswer(networkResponseSuccess).when(radioContentCall).enqueue(Matchers.<Callback<RadioContent>>any());
+    public void onNetworkResponseSuccess_ifLoaderSetupForScheduledLoading_thenScheduleNextLoadTaskForWhenTheCurrentTrackEndsPlus1Sec() {
         when(radioContentLoader.isSetupForScheduledLoading()).thenReturn(true);
         when(radioContent.getCurrentTrack()).thenReturn(mock(NowPlayingTrack.class));
         when(radioContent.getCurrentTrack().getRemainingTimeInSeconds()).thenReturn(142);
 
-        radioContentLoader.loadContent();
+        radioContentLoader.onResponse(radioContentCall, getSuccessfulNetworkResponse());
 
         verify(timer).schedule(any(TimerTask.class), eq(142000L + 1000L));
     }
 
     @Test
-    public void whenLoadContentInvoked_ifNetworkResponseSuccess_andLoaderSetupForScheduledLoading_andRemainingTimeForCurrentTrackIsInvalid_thenScheduleNextLoadTaskFor5SecondsFromNow() {
-        Answer networkResponseSuccess = getAnswerForNetworkResponseSuccess();
-        doAnswer(networkResponseSuccess).when(radioContentCall).enqueue(Matchers.<Callback<RadioContent>>any());
+    public void onNetworkResponseSuccess_ifLoaderSetupForScheduledLoading_andRemainingTimeForCurrentTrackIsInvalid_thenScheduleNextLoadTaskFor5SecondsFromNow() {
         when(radioContentLoader.isSetupForScheduledLoading()).thenReturn(true);
         when(radioContent.getCurrentTrack()).thenReturn(mock(NowPlayingTrack.class));
         when(radioContent.getCurrentTrack().getRemainingTimeInSeconds()).thenReturn(NowPlayingTrack.INVALID_TIME_VALUE);
 
-        radioContentLoader.loadContent();
+        radioContentLoader.onResponse(radioContentCall, getSuccessfulNetworkResponse());
 
         verify(timer).schedule(any(TimerTask.class), eq(5000L));
     }
 
     @Test
-    public void whenLoadContentInvoked_ifNetworkResponseSuccess_thenNotifyListenerOfLoadSuccess() {
-        Answer networkResponseSuccess = getAnswerForNetworkResponseSuccess();
-        doAnswer(networkResponseSuccess).when(radioContentCall).enqueue(Matchers.<Callback<RadioContent>>any());
-
-        radioContentLoader.loadContent();
+    public void onNetworkResponseSuccess_shouldNotifyListenerOfLoadSuccess() {
+        radioContentLoader.onResponse(radioContentCall, getSuccessfulNetworkResponse());
 
         verify(radioContentListener).onRadioContentLoadSuccess(any(RadioContent.class));
     }
 
     @Test
-    public void whenLoadContentInvoked_ifNetworkResponseFailure_thenNotifyListenerOfLoadFailure() {
-        Answer networkResponseFail = getAnswerForNetworkResponseFailure();
-        doAnswer(networkResponseFail).when(radioContentCall).enqueue(Matchers.<Callback<RadioContent>>any());
-
-        radioContentLoader.loadContent();
+    public void onNetworkResponseFailure_shouldNotifyListenerOfLoadFailure() {
+        radioContentLoader.onResponse(radioContentCall, getFailedNetworkResponse());
 
         verify(radioContentListener).onRadioContentLoadFailed();
     }
 
     @Test
-    public void whenLoadContentInvoked_ifNetworkCallFailure_thenNotifyListenerOfLoadFailure() {
-        Answer networkCallFail = getAnswerForNetworkCallFailure();
-        doAnswer(networkCallFail).when(radioContentCall).enqueue(Matchers.<Callback<RadioContent>>any());
-
-        radioContentLoader.loadContent();
+    public void onNetworkCallFailure_shouldNotifyListenerOfLoadFailure() {
+        radioContentLoader.onFailure(radioContentCall, mock(Throwable.class));
 
         verify(radioContentListener).onRadioContentLoadFailed();
     }
 
-    private Answer getAnswerForNetworkResponseSuccess() {
-        Response<RadioContent> response = Response.success(radioContent);
-        return getAnswerForNetworkResponse(response);
+    private Response<RadioContent> getSuccessfulNetworkResponse() {
+        return Response.success(radioContent);
     }
 
-    private Answer getAnswerForNetworkResponseFailure() {
-        Response<RadioContent> response = Response.error(500, mock(ResponseBody.class));
-        return getAnswerForNetworkResponse(response);
-    }
-
-    private Answer getAnswerForNetworkResponse(final Response response) {
-        return new Answer() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                Callback<RadioContent> radioContentCallback = (Callback<RadioContent>) invocation.getArguments()[0];
-                radioContentCallback.onResponse(radioContentCall, response);
-                return null;
-            }
-        };
-    }
-
-    private Answer getAnswerForNetworkCallFailure() {
-        return new Answer() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                Callback<RadioContent> radioContentCallback = (Callback<RadioContent>) invocation.getArguments()[0];
-                radioContentCallback.onFailure(radioContentCall, mock(Throwable.class));
-                return null;
-            }
-        };
+    private Response<RadioContent> getFailedNetworkResponse() {
+        return Response.error(500, mock(ResponseBody.class));
     }
 }

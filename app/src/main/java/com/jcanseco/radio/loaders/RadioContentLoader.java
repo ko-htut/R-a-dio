@@ -12,7 +12,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class RadioContentLoader {
+public class RadioContentLoader implements Callback<RadioContent> {
 
     private static final int DEFAULT_SCHEDULED_LOAD_TASK_DELAY_IN_MILLIS = 5000;
 
@@ -46,31 +46,27 @@ public class RadioContentLoader {
 
     public void loadContent() {
         Call<RadioContent> radioContentCall = radioRestService.getRadioContent();
-        radioContentCall.enqueue(createRadioContentCallback());
+        radioContentCall.enqueue(this);
     }
 
-    private Callback<RadioContent> createRadioContentCallback() {
-        return new Callback<RadioContent>() {
-            @Override
-            public void onResponse(Call<RadioContent> call, Response<RadioContent> response) {
-                if (response.isSuccess()) {
-                    RadioContent radioContent = response.body();
-                    radioContentListener.onRadioContentLoadSuccess(radioContent);
+    @Override
+    public void onResponse(Call<RadioContent> call, Response<RadioContent> response) {
+        if (response.isSuccess()) {
+            RadioContent radioContent = response.body();
+            radioContentListener.onRadioContentLoadSuccess(radioContent);
 
-                    if(isSetupForScheduledLoading()) {
-                        long delayInMillis = determineDelayForNextLoadTaskInMillis(radioContent.getCurrentTrack());
-                        scheduleNextLoadTask(delayInMillis);
-                    }
-                } else {
-                    radioContentListener.onRadioContentLoadFailed();
-                }
+            if (isSetupForScheduledLoading()) {
+                long delayInMillis = determineDelayForNextLoadTaskInMillis(radioContent.getCurrentTrack());
+                scheduleNextLoadTask(delayInMillis);
             }
+        } else {
+            radioContentListener.onRadioContentLoadFailed();
+        }
+    }
 
-            @Override
-            public void onFailure(Call<RadioContent> call, Throwable t) {
-                radioContentListener.onRadioContentLoadFailed();
-            }
-        };
+    @Override
+    public void onFailure(Call<RadioContent> call, Throwable t) {
+        radioContentListener.onRadioContentLoadFailed();
     }
 
     protected boolean isSetupForScheduledLoading() {
@@ -80,7 +76,7 @@ public class RadioContentLoader {
     private int determineDelayForNextLoadTaskInMillis(NowPlayingTrack currentTrack) {
         int remainingTimeForCurrentTrackInSecs = currentTrack.getRemainingTimeInSeconds();
 
-        if(remainingTimeForCurrentTrackInSecs != NowPlayingTrack.INVALID_TIME_VALUE) {
+        if (remainingTimeForCurrentTrackInSecs != NowPlayingTrack.INVALID_TIME_VALUE) {
             return (remainingTimeForCurrentTrackInSecs + 1) * 1000;
         } else {
             return DEFAULT_SCHEDULED_LOAD_TASK_DELAY_IN_MILLIS;
