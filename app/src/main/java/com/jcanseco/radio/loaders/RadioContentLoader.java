@@ -46,10 +46,10 @@ public class RadioContentLoader {
 
     public void loadContent() {
         Call<RadioContent> radioContentCall = radioRestService.getRadioContent();
-        radioContentCall.enqueue(buildRadioContentCallback());
+        radioContentCall.enqueue(createRadioContentCallback());
     }
 
-    private Callback<RadioContent> buildRadioContentCallback() {
+    private Callback<RadioContent> createRadioContentCallback() {
         return new Callback<RadioContent>() {
             @Override
             public void onResponse(Call<RadioContent> call, Response<RadioContent> response) {

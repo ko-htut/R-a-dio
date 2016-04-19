@@ -75,7 +75,7 @@ public class RadioPlayer implements Player, ExoPlayer.Listener {
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
         if(isPlayerBuffering(playbackState)) {
-            beginCountdownForBufferTimeout();
+            startCountdownForBufferTimeout();
         } else {
             stopCountdownForBufferTimeout();
         }
@@ -85,7 +85,7 @@ public class RadioPlayer implements Player, ExoPlayer.Listener {
         return playbackState == ExoPlayer.STATE_BUFFERING;
     }
 
-    private void beginCountdownForBufferTimeout() {
+    private void startCountdownForBufferTimeout() {
         if (!isCurrentlyCountingDownForBufferTimeout()) {
             scheduleTimerTaskForBufferTimeout();
             isCurrentlyCountingDownForBufferTimeout = true;
