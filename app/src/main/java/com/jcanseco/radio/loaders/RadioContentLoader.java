@@ -19,7 +19,7 @@ public class RadioContentLoader {
     private RadioContentListener radioContentListener;
     private RadioRestService radioRestService;
 
-    private boolean isSetupForActiveLoading;
+    private boolean isSetupForScheduledLoading;
     private Timer timer;
 
     public RadioContentLoader(RadioRestService radioRestService) {
@@ -30,16 +30,16 @@ public class RadioContentLoader {
         this.radioContentListener = radioContentListener;
     }
 
-    public void beginActiveLoadingOfContent() {
-        if (!isSetupForActiveLoading()) {
-            isSetupForActiveLoading = true;
+    public void startScheduledLoadingOfContent() {
+        if (!isSetupForScheduledLoading()) {
+            isSetupForScheduledLoading = true;
             timer = initNewTimer();
             loadContent();
         }
     }
 
-    public void stopActiveLoadingOfContent() {
-        isSetupForActiveLoading = false;
+    public void stopScheduledLoadingOfContent() {
+        isSetupForScheduledLoading = false;
         getTimer().cancel();
         getTimer().purge();
     }
@@ -57,7 +57,7 @@ public class RadioContentLoader {
                     RadioContent radioContent = response.body();
                     radioContentListener.onRadioContentLoadSuccess(radioContent);
 
-                    if(isSetupForActiveLoading()) {
+                    if(isSetupForScheduledLoading()) {
                         long delayInMillis = determineDelayForNextLoadTaskInMillis(radioContent.getCurrentTrack());
                         scheduleNextLoadTask(delayInMillis);
                     }
@@ -73,8 +73,8 @@ public class RadioContentLoader {
         };
     }
 
-    protected boolean isSetupForActiveLoading() {
-        return isSetupForActiveLoading;
+    protected boolean isSetupForScheduledLoading() {
+        return isSetupForScheduledLoading;
     }
 
     private int determineDelayForNextLoadTaskInMillis(NowPlayingTrack currentTrack) {

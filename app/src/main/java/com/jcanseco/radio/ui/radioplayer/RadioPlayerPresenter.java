@@ -29,11 +29,11 @@ public class RadioPlayerPresenter implements RadioContentLoader.RadioContentList
     }
 
     public void onResume() {
-        radioContentLoader.beginActiveLoadingOfContent();
+        radioContentLoader.startScheduledLoadingOfContent();
     }
 
     public void onPause() {
-        radioContentLoader.stopActiveLoadingOfContent();
+        radioContentLoader.stopScheduledLoadingOfContent();
     }
 
     public void onStop() {

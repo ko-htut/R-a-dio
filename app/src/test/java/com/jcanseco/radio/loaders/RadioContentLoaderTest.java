@@ -69,48 +69,48 @@ public class RadioContentLoaderTest {
     }
 
     @Test
-    public void shouldNotBeSetUpForActiveLoadingbyDefault() {
-        assertThat(radioContentLoader.isSetupForActiveLoading()).isFalse();
+    public void shouldNotBeSetUpForScheduledLoadingbyDefault() {
+        assertThat(radioContentLoader.isSetupForScheduledLoading()).isFalse();
     }
 
     @Test
-    public void whenBeginActiveLoadingOfContentInvoked_ifNotCurrentlySetUpForActiveLoading_thenLoaderShouldBeSetupForActiveLoading() {
-        when(radioContentLoader.isSetupForActiveLoading()).thenReturn(false).thenCallRealMethod();
+    public void whenStartScheduledLoadingOfContentInvoked_ifNotCurrentlySetUpForScheduledLoading_thenLoaderShouldBeSetupForScheduledLoading() {
+        when(radioContentLoader.isSetupForScheduledLoading()).thenReturn(false).thenCallRealMethod();
 
-        radioContentLoader.beginActiveLoadingOfContent();
+        radioContentLoader.startScheduledLoadingOfContent();
 
-        assertThat(radioContentLoader.isSetupForActiveLoading()).isTrue();
+        assertThat(radioContentLoader.isSetupForScheduledLoading()).isTrue();
     }
 
     @Test
-    public void whenBeginActiveLoadingOfContentInvoked_ifNotCurrentlySetUpForActiveLoading_thenShouldInitNewTimer() {
-        when(radioContentLoader.isSetupForActiveLoading()).thenReturn(false);
+    public void whenStartScheduledLoadingOfContentInvoked_ifNotCurrentlySetUpForScheduledLoading_thenShouldInitNewTimer() {
+        when(radioContentLoader.isSetupForScheduledLoading()).thenReturn(false);
 
-        radioContentLoader.beginActiveLoadingOfContent();
+        radioContentLoader.startScheduledLoadingOfContent();
 
         verify(radioContentLoader).initNewTimer();
     }
 
     @Test
-    public void whenBeginActiveLoadingOfContentInvoked_ifAlreadySetUpForActiveLoading_thenDoNothing() {
-        when(radioContentLoader.isSetupForActiveLoading()).thenReturn(true);
+    public void whenStartScheduledLoadingOfContentInvoked_ifAlreadySetUpForScheduledLoading_thenDoNothing() {
+        when(radioContentLoader.isSetupForScheduledLoading()).thenReturn(true);
 
-        radioContentLoader.beginActiveLoadingOfContent();
+        radioContentLoader.startScheduledLoadingOfContent();
 
         verify(radioContentLoader, never()).initNewTimer();
         verify(radioContentLoader, never()).loadContent();
     }
 
     @Test
-    public void whenBeginActiveLoadingOfContentInvoked_shouldLoadContentAtLeastOnce() {
-        radioContentLoader.beginActiveLoadingOfContent();
+    public void whenStartScheduledLoadingOfContentInvoked_shouldLoadContentAtLeastOnce() {
+        radioContentLoader.startScheduledLoadingOfContent();
 
         verify(radioContentLoader, atLeast(1)).loadContent();
     }
 
     @Test
-    public void whenStopActiveLoadingOfContentInvoked_shouldCancelAndPurgeTimer() {
-        radioContentLoader.stopActiveLoadingOfContent();
+    public void whenStopScheduledLoadingOfContentInvoked_shouldCancelAndPurgeTimer() {
+        radioContentLoader.stopScheduledLoadingOfContent();
 
         InOrder inOrder = inOrder(timer);
         inOrder.verify(timer).cancel();
@@ -118,17 +118,17 @@ public class RadioContentLoaderTest {
     }
 
     @Test
-    public void whenStopActiveLoadingOfContentInvoked_loaderShouldNotBeSetupForActiveLoading() {
-        radioContentLoader.stopActiveLoadingOfContent();
+    public void whenStopScheduledLoadingOfContentInvoked_loaderShouldNotBeSetupForScheduledLoading() {
+        radioContentLoader.stopScheduledLoadingOfContent();
 
-        assertThat(radioContentLoader.isSetupForActiveLoading()).isFalse();
+        assertThat(radioContentLoader.isSetupForScheduledLoading()).isFalse();
     }
 
     @Test
-    public void whenLoadContentInvoked_ifNetworkResponseSuccess_andLoaderSetupForActiveLoading_thenScheduleNextLoadTaskForWhenTheCurrentTrackEndsPlus1Sec() {
+    public void whenLoadContentInvoked_ifNetworkResponseSuccess_andLoaderSetupForScheduledLoading_thenScheduleNextLoadTaskForWhenTheCurrentTrackEndsPlus1Sec() {
         Answer networkResponseSuccess = getAnswerForNetworkResponseSuccess();
         doAnswer(networkResponseSuccess).when(radioContentCall).enqueue(Matchers.<Callback<RadioContent>>any());
-        when(radioContentLoader.isSetupForActiveLoading()).thenReturn(true);
+        when(radioContentLoader.isSetupForScheduledLoading()).thenReturn(true);
         when(radioContent.getCurrentTrack()).thenReturn(mock(NowPlayingTrack.class));
         when(radioContent.getCurrentTrack().getRemainingTimeInSeconds()).thenReturn(142);
 
@@ -138,10 +138,10 @@ public class RadioContentLoaderTest {
     }
 
     @Test
-    public void whenLoadContentInvoked_ifNetworkResponseSuccess_andLoaderSetupForActiveLoading_andRemainingTimeForCurrentTrackIsInvalid_thenScheduleNextLoadTaskFor5SecondsFromNow() {
+    public void whenLoadContentInvoked_ifNetworkResponseSuccess_andLoaderSetupForScheduledLoading_andRemainingTimeForCurrentTrackIsInvalid_thenScheduleNextLoadTaskFor5SecondsFromNow() {
         Answer networkResponseSuccess = getAnswerForNetworkResponseSuccess();
         doAnswer(networkResponseSuccess).when(radioContentCall).enqueue(Matchers.<Callback<RadioContent>>any());
-        when(radioContentLoader.isSetupForActiveLoading()).thenReturn(true);
+        when(radioContentLoader.isSetupForScheduledLoading()).thenReturn(true);
         when(radioContent.getCurrentTrack()).thenReturn(mock(NowPlayingTrack.class));
         when(radioContent.getCurrentTrack().getRemainingTimeInSeconds()).thenReturn(NowPlayingTrack.INVALID_TIME_VALUE);
 

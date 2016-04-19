@@ -56,17 +56,17 @@ public class RadioPlayerPresenterTest {
     }
 
     @Test
-    public void onResume_shouldBeginActiveLoadingOfRadioContent() {
+    public void onResume_shouldStartScheduledLoadingOfRadioContent() {
         radioPlayerPresenter.onResume();
 
-        verify(radioContentLoader).beginActiveLoadingOfContent();
+        verify(radioContentLoader).startScheduledLoadingOfContent();
     }
 
     @Test
-    public void onPause_shouldStopActiveLoadingOfRadioContent() {
+    public void onPause_shouldStopScheduledLoadingOfRadioContent() {
         radioPlayerPresenter.onPause();
 
-        verify(radioContentLoader).stopActiveLoadingOfContent();
+        verify(radioContentLoader).stopScheduledLoadingOfContent();
     }
 
     @Test
