@@ -4,7 +4,7 @@ import android.app.Application;
 
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
-import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
+import com.google.android.exoplayer.TrackRenderer;
 import com.jcanseco.radio.tasks.RadioPlayerBufferTimeoutTimerTask;
 
 import org.junit.Before;
@@ -44,7 +44,7 @@ public class RadioPlayerTest {
     Player.Listener playerListener;
 
     @Mock
-    MediaCodecAudioTrackRenderer audioRenderer;
+    TrackRenderer audioTrackRenderer;
 
     @Mock
     Timer timer;
@@ -54,7 +54,7 @@ public class RadioPlayerTest {
         radioPlayer = spy(new RadioPlayer(exoPlayer, application));
         radioPlayer.setPlayerListener(playerListener);
 
-        doReturn(audioRenderer).when(radioPlayer).buildAudioRenderer();
+        doReturn(audioTrackRenderer).when(radioPlayer).createAudioTrackRenderer();
 
         doReturn(timer).when(radioPlayer).initNewTimer();
         doReturn(timer).when(radioPlayer).getTimer();
@@ -85,21 +85,21 @@ public class RadioPlayerTest {
     }
 
     @Test
-    public void whenPlayInvoked_andExoPlayerNotYetPreparedForPlayback_thenPrepareExoPlayerForPlayback_withAudioRenderer() {
+    public void whenPlayInvoked_andExoPlayerNotYetPreparedForPlayback_thenPrepareExoPlayerForPlayback_withAudioTrackRenderer() {
         doReturn(false).when(radioPlayer).isExoPlayerPreparedForPlayback();
 
         radioPlayer.play();
 
-        verify(exoPlayer).prepare(audioRenderer);
+        verify(exoPlayer).prepare(audioTrackRenderer);
     }
 
     @Test
-    public void testThatNewAudioRendererIsBuilt_wheneverExoPlayerIsPreparedForPlayback() {
+    public void testThatNewAudioTrackRendererIsBuilt_wheneverExoPlayerIsPreparedForPlayback() {
         doReturn(false).when(radioPlayer).isExoPlayerPreparedForPlayback();
 
         radioPlayer.play();
 
-        verify(radioPlayer).buildAudioRenderer();
+        verify(radioPlayer).createAudioTrackRenderer();
     }
 
     @Test
