@@ -72,7 +72,7 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
     private void injectDependencies() {
         ButterKnife.bind(this);
 
-        MainApplication.getApplication(this)
+        MainApplication.getInstance(this)
                 .getMainComponent()
                 .buildRadioPlayerActivityComponent(new RadioPlayerActivityModule(this))
                 .inject(this);

@@ -24,7 +24,7 @@ public class MainApplication extends Application {
                 .build();
     }
 
-    public static MainApplication getApplication(Context context) {
+    public static MainApplication getInstance(Context context) {
         return (MainApplication) context.getApplicationContext();
     }
 

@@ -30,7 +30,7 @@ public class RadioPlayerService extends Service implements RadioPlayer.Listener 
     }
 
     private void injectDependencies() {
-        MainApplication.getApplication(this)
+        MainApplication.getInstance(this)
                 .getMainComponent()
                 .buildRadioPlayerServiceComponent(new RadioPlayerServiceModule())
                 .inject(this);
