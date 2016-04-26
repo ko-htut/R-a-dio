@@ -41,7 +41,7 @@ public class RadioPlayerTest {
     Application application;
 
     @Mock
-    Player.Listener playerListener;
+    RadioPlayer.Listener radioPlayerListener;
 
     @Mock
     TrackRenderer audioTrackRenderer;
@@ -52,7 +52,7 @@ public class RadioPlayerTest {
     @Before
     public void setup() {
         radioPlayer = spy(new RadioPlayer(exoPlayer, application));
-        radioPlayer.setPlayerListener(playerListener);
+        radioPlayer.setRadioPlayerListener(radioPlayerListener);
 
         doReturn(audioTrackRenderer).when(radioPlayer).createAudioTrackRenderer();
 
@@ -208,7 +208,7 @@ public class RadioPlayerTest {
     public void onBufferingTimedOut_shouldNotifyPlayerListenerOfStreamError() {
         radioPlayer.onBufferingTimedOut();
 
-        verify(playerListener).onPlayerStreamError();
+        verify(radioPlayerListener).onRadioPlayerStreamError();
     }
 
     @Test
@@ -233,12 +233,12 @@ public class RadioPlayerTest {
     }
 
     @Test
-    public void onPlayerError_shouldNotifyPlayerListenerOfStreamError() {
+    public void onPlayerError_shouldNotifyRadioPlayerListenerOfStreamError() {
         String irrelevantErrorMessage = "";
 
         radioPlayer.onPlayerError(new ExoPlaybackException(irrelevantErrorMessage));
 
-        verify(playerListener).onPlayerStreamError();
+        verify(radioPlayerListener).onRadioPlayerStreamError();
     }
 
     @Test

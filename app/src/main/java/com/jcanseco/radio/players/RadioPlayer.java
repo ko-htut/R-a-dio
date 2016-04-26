@@ -12,11 +12,11 @@ import com.jcanseco.radio.tasks.RadioPlayerBufferTimeoutTimerTask;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class RadioPlayer implements Player, ExoPlayer.Listener {
+public class RadioPlayer implements ExoPlayer.Listener {
 
     private static final long BUFFER_TIMEOUT_IN_MILLIS = 10000;
 
-    private Player.Listener playerListener;
+    private RadioPlayer.Listener radioPlayerListener;
 
     private ExoPlayer exoPlayer;
     private boolean isPlaying;
@@ -33,17 +33,14 @@ public class RadioPlayer implements Player, ExoPlayer.Listener {
         this.applicationContext = application;
     }
 
-    @Override
-    public void setPlayerListener(Player.Listener playerListener) {
-        this.playerListener = playerListener;
+    public void setRadioPlayerListener(RadioPlayer.Listener radioPlayerListener) {
+        this.radioPlayerListener = radioPlayerListener;
     }
 
-    @Override
     public boolean isPlaying() {
         return isPlaying;
     }
 
-    @Override
     public void play() {
         if (!isExoPlayerPreparedForPlayback()) {
             prepareExoPlayerForPlayback();
@@ -60,13 +57,11 @@ public class RadioPlayer implements Player, ExoPlayer.Listener {
         return TrackRendererFactory.createAudioTrackRenderer(applicationContext);
     }
 
-    @Override
     public void pause() {
         exoPlayer.setPlayWhenReady(false);
         isPlaying = false;
     }
 
-    @Override
     public void release() {
         exoPlayer.release();
         isPlaying = false;
@@ -113,7 +108,7 @@ public class RadioPlayer implements Player, ExoPlayer.Listener {
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-        playerListener.onPlayerStreamError();
+        radioPlayerListener.onRadioPlayerStreamError();
         exoPlayer.stop();
         isPlaying = false;
     }
@@ -135,5 +130,11 @@ public class RadioPlayer implements Player, ExoPlayer.Listener {
 
     protected Timer getTimer() {
         return timer;
+    }
+
+
+    public interface Listener {
+
+        void onRadioPlayerStreamError();
     }
 }

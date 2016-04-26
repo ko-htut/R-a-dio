@@ -11,12 +11,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jcanseco.radio.MainApplication;
 import com.jcanseco.radio.R;
 import com.jcanseco.radio.constants.Constants;
-import com.jcanseco.radio.injectors.Injector;
+import com.jcanseco.radio.injection.modules.RadioPlayerActivityModule;
+import com.jcanseco.radio.services.RadioPlayerService;
 import com.jcanseco.radio.ui.radioplayer.broadcastreceivers.FailedToPlayStreamBroadcastReceiver;
 import com.jcanseco.radio.ui.radioplayer.serviceconnections.RadioPlayerServiceConnection;
-import com.jcanseco.radio.services.RadioPlayerService;
+
+import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -25,11 +28,16 @@ import butterknife.OnClick;
 public class RadioPlayerActivity extends AppCompatActivity implements RadioPlayerPresenter.View,
         RadioPlayerServiceConnection.ServiceConnectionListener, FailedToPlayStreamBroadcastReceiver.BroadcastReceivedListener {
 
-    RadioPlayerPresenter radioPlayerPresenter;
-
     RadioPlayerService radioPlayerService;
+
+    @Inject
     RadioPlayerServiceConnection radioPlayerServiceConnection;
+
+    @Inject
     FailedToPlayStreamBroadcastReceiver failedToPlayStreamBroadcastReceiver;
+
+    @Inject
+    RadioPlayerPresenter radioPlayerPresenter;
 
     @Bind(R.id.track_title)
     TextView trackTitleView;
@@ -56,13 +64,18 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_radio_player);
+        injectDependencies();
+
+        radioPlayerPresenter.attachView(this);
+    }
+
+    private void injectDependencies() {
         ButterKnife.bind(this);
 
-        radioPlayerPresenter = Injector.provideRadioPlayerPresenter();
-        radioPlayerPresenter.attachView(this);
-
-        radioPlayerServiceConnection = Injector.provideRadioPlayerServiceConnection(this);
-        failedToPlayStreamBroadcastReceiver = Injector.provideFailedToPlayStreamBroadcastReceiver(this);
+        MainApplication.getApplication(this)
+                .getMainComponent()
+                .buildRadioPlayerActivityComponent(new RadioPlayerActivityModule(this))
+                .inject(this);
     }
 
     @Override

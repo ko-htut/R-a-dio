@@ -1,6 +1,5 @@
 package com.jcanseco.radio.services;
 
-import android.app.Application;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -8,22 +7,33 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.jcanseco.radio.MainApplication;
 import com.jcanseco.radio.constants.Constants;
-import com.jcanseco.radio.injectors.Injector;
-import com.jcanseco.radio.players.Player;
+import com.jcanseco.radio.injection.modules.RadioPlayerServiceModule;
+import com.jcanseco.radio.players.RadioPlayer;
 
-public class RadioPlayerService extends Service implements Player.Listener {
+import javax.inject.Inject;
 
-    Player player;
+public class RadioPlayerService extends Service implements RadioPlayer.Listener {
+
+    @Inject
+    RadioPlayer radioPlayer;
 
     private final IBinder radioPlayerBinder = new RadioPlayerBinder();
 
     @Override
     public void onCreate() {
         super.onCreate();
+        injectDependencies();
 
-        player = Injector.providePlayer((Application) getApplicationContext());
-        player.setPlayerListener(this);
+        radioPlayer.setRadioPlayerListener(this);
+    }
+
+    private void injectDependencies() {
+        MainApplication.getApplication(this)
+                .getMainComponent()
+                .buildRadioPlayerServiceComponent(new RadioPlayerServiceModule())
+                .inject(this);
     }
 
     @Nullable
@@ -34,23 +44,23 @@ public class RadioPlayerService extends Service implements Player.Listener {
 
     @Override
     public void onDestroy() {
-        player.release();
+        radioPlayer.release();
     }
 
     public boolean isPlayingStream() {
-        return player.isPlaying();
+        return radioPlayer.isPlaying();
     }
 
     public void startPlayingRadioStream() {
-        player.play();
+        radioPlayer.play();
     }
 
     public void stopPlayingRadioStream() {
-        player.pause();
+        radioPlayer.pause();
     }
 
     @Override
-    public void onPlayerStreamError() {
+    public void onRadioPlayerStreamError() {
         sendOutFailedToPlayStreamBroadcast();
     }
 
