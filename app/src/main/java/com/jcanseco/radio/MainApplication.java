@@ -5,7 +5,7 @@ import android.content.Context;
 
 import com.jcanseco.radio.injection.components.DaggerMainComponent;
 import com.jcanseco.radio.injection.components.MainComponent;
-import com.jcanseco.radio.injection.modules.MainModule;
+import com.jcanseco.radio.injection.modules.ApplicationModule;
 
 public class MainApplication extends Application {
 
@@ -20,7 +20,7 @@ public class MainApplication extends Application {
 
     private void buildMainComponent() {
         mainComponent = DaggerMainComponent.builder()
-                .mainModule(new MainModule(this))
+                .applicationModule(new ApplicationModule(this))
                 .build();
     }
 

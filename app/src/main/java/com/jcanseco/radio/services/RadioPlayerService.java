@@ -9,7 +9,7 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import com.jcanseco.radio.MainApplication;
 import com.jcanseco.radio.constants.Constants;
-import com.jcanseco.radio.injection.modules.RadioPlayerServiceModule;
+import com.jcanseco.radio.injection.modules.PlayerModule;
 import com.jcanseco.radio.players.RadioPlayer;
 
 import javax.inject.Inject;
@@ -32,7 +32,7 @@ public class RadioPlayerService extends Service implements RadioPlayer.Listener 
     private void injectDependencies() {
         MainApplication.getInstance(this)
                 .getMainComponent()
-                .buildRadioPlayerServiceComponent(new RadioPlayerServiceModule())
+                .buildRadioPlayerServiceComponent(new PlayerModule())
                 .inject(this);
     }
 

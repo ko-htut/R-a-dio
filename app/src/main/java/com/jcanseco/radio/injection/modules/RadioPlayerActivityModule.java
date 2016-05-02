@@ -1,6 +1,5 @@
 package com.jcanseco.radio.injection.modules;
 
-import com.jcanseco.radio.api.RadioRestService;
 import com.jcanseco.radio.injection.scopes.ActivityScope;
 import com.jcanseco.radio.loaders.RadioContentLoader;
 import com.jcanseco.radio.ui.radioplayer.RadioPlayerActivity;
@@ -18,12 +17,6 @@ public class RadioPlayerActivityModule {
 
     public RadioPlayerActivityModule(RadioPlayerActivity radioPlayerActivity) {
         this.radioPlayerActivity = radioPlayerActivity;
-    }
-
-    @Provides
-    @ActivityScope
-    RadioContentLoader provideRadioContentLoader(RadioRestService radioRestService) {
-        return new RadioContentLoader(radioRestService);
     }
 
     @Provides
