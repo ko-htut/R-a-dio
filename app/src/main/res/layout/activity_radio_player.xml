@@ -22,6 +22,7 @@
         tools:text="Kuribayashi Minami - Song of a Faraway Homeland" />
 
     <LinearLayout
+        android:id="@+id/center_section"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
@@ -54,41 +55,12 @@
             tools:text="255 Listeners" />
     </LinearLayout>
 
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="match_parent"
-        android:layout_height="5dp"
-        android:layout_above="@+id/action_button"
-        android:background="@color/radio_black"
-        android:progressDrawable="@color/radio_blue"
-        android:indeterminate="false"
-        style="@android:style/Widget.ProgressBar.Horizontal"/>
-
-    <TextView
-        android:id="@+id/elapsed_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/progress_bar"
-        android:layout_marginTop="5dp"
-        tools:text="00:00"/>
-
-    <TextView
-        android:id="@+id/track_length"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@+id/progress_bar"
-        android:layout_marginTop="5dp"
-        tools:text="03:23"/>
-
     <Button
         android:id="@+id/action_button"
         android:layout_width="55dp"
         android:layout_height="55dp"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/center_section"
+        android:layout_marginTop="30dp"
         android:layout_centerHorizontal="true"
         android:background="@drawable/play"/>
 </RelativeLayout>

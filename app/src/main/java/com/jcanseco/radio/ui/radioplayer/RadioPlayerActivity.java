@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,15 +46,6 @@ public class RadioPlayerActivity extends AppCompatActivity implements RadioPlaye
 
     @Bind(R.id.num_of_listeners)
     TextView numOfListenersView;
-
-    @Bind(R.id.progress_bar)
-    ProgressBar progressBar;
-
-    @Bind(R.id.elapsed_time)
-    TextView elapsedTimeView;
-
-    @Bind(R.id.track_length)
-    TextView trackLengthView;
 
     @Bind(R.id.action_button)
     Button actionButton;
